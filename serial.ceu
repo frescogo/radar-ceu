@@ -9,11 +9,14 @@
 #include <sys/ioctl.h>
 ```
 
-task Serial () {
+task Serial (port) {
+    val dev = "/dev/ttyACM" ++ to.string(port);
+    println(dev)
     loop {
         catch :timeout {
             val fd = loop {
-                val x = `:number open("/dev/ttyACM0", O_RDONLY)`;
+                val c = to.pointer(dev)
+                val x = `:number open($c.Pointer, O_RDONLY)`;
                 until (x>=0) and x
                 await <5:s>
             }
@@ -55,18 +58,19 @@ println(:fd, fd)
                     until ok and x
                     await(:Pico.Frame)
                 }
-                broadcast(:c [c]) in :global
+                broadcast(:Char [port,c]) in :global
             }
         }
     }
 }
 
 spawn {
-    every :c {
-        println(:c, it)
+    every :Char {
+        println(it)
     }
 }
 
-spawn Serial()
+spawn Serial(0)
+spawn Serial(1)
 
 pico.loop()
