@@ -1,0 +1,108 @@
+^["@/pico/pico.ceu"]
+
+```:pre
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+```
+
+func serial-init (fd) {
+    ```
+    {
+        int fd = $fd.Number;
+        int flags = fcntl(fd, F_GETFL, 0);
+        int ok    = fcntl(fd, F_SETFL, flags|O_NONBLOCK);
+        assert(ok == 0 && "serial error");
+        struct termios options;
+        tcgetattr(fd, &options);
+        cfsetispeed(&options, B9600);
+        cfsetospeed(&options, B9600);
+        //options.c_cflag |= CS8;
+        options.c_cflag |= CS8;
+        options.c_cflag &= ~CRTSCTS;
+        options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+        tcsetattr(fd, TCSANOW, &options);
+        ioctl(fd, TCFLSH, 2);
+    }
+    ```
+}
+
+func serial-read (fd) {
+    ```
+    char c;
+    int ret = read($fd.Number, &c, 1);
+    //printf(">>> %d %d %d\n", ret, c, (int)$fd.Number);
+    ```
+    `:bool ret==1` and `:char c`
+}
+
+task Serial-Read (fd) {
+    loop {
+        until serial-read(fd)
+        await(:Pico.Frame)
+    }
+}
+
+enum { :inb, :out }
+
+task Serial (port) {
+    val dev = "/dev/ttyACM" ++ to.string(port);
+    println(dev)
+    loop {
+        catch :timeout {
+            val fd = loop {
+                val c = to.pointer(dev)
+                val x = `:number open($c.Pointer, O_RDONLY)`;
+println(:fd, c, x, `:number errno`)
+                until (x>=0) and x
+                await <5:s>
+            }
+println(:ok, fd)
+
+            serial-init(fd)
+            defer {
+                `assert(close($fd.Number) == 0);`
+            }
+            loop {
+                par-or {
+                    await <5:s>
+                    error(:timeout)
+                } with {
+                    loop {
+                        val c = await spawn Serial-Read(fd)
+                        until c == `:char 0x88`
+                    }
+                    loop {1 => 7} {
+                        await spawn Serial-Read(fd)
+                    }
+                    val dir = await spawn Serial-Read(fd) thus {
+                        val bit = `:number ($it.Char >> 1) & 0x01`
+                        (bit == 0) and :out or :inb
+                    }
+                    val str = #[]
+                    loop {1 => 4} {
+                        set str[+] = await spawn Serial-Read(fd)
+                    }
+                    val num = to.number(str)
+                    if num {
+                        broadcast(:Radar [port,dir,num]) in :global
+                    }
+                }
+            }
+        }
+    }
+}
+
+spawn {
+    every :Radar {
+        println(it)
+    }
+}
+
+spawn Serial(0)
+spawn Serial(1)
+
+pico.loop()
