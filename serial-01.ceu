@@ -47,24 +47,31 @@ task Serial (port) {
             val fd = loop {
                 val c = to.pointer(dev)
                 val x = `:number open($c.Pointer, O_RDONLY)`;
+println(:fd, c, x, `:number errno`)
                 until (x>=0) and x
                 await <5:s>
             }
-println(:fd, fd)
+println(:ok, fd)
+
+            task Read () {
+                loop {
+                    until serial-read(fd)
+                    await(:Pico.Frame)
+                }
+            }
+
             serial-init(fd)
             defer {
                 `assert(close($fd.Number) == 0);`
             }
             loop {
-                spawn {
+                par-or {
                     await <5:s>
                     error(:timeout)
+                } with {
+                    val c = await spawn Read()
+                    broadcast(:Char [port,c]) in :global
                 }
-                val c = loop {
-                    until serial-read(fd)
-                    await(:Pico.Frame)
-                }
-                broadcast(:Char [port,c]) in :global
             }
         }
     }
