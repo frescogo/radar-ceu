@@ -1,0 +1,72 @@
+^["@/pico/pico.ceu"]
+
+```:pre
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+```
+
+task Serial () {
+    loop {
+        catch :timeout {
+            val fd = loop {
+                val x = `:number open("/dev/ttyACM0", O_RDONLY)`;
+                until (x>=0) and x
+                await <5:s>
+            }
+println(:fd, fd)
+            ```
+            {
+                int fd = $fd.Number;
+                int flags = fcntl(fd, F_GETFL, 0);
+                int ok    = fcntl(fd, F_SETFL, flags|O_NONBLOCK);
+                assert(ok == 0 && "serial error");
+                struct termios options;
+                tcgetattr(fd, &options);
+                cfsetispeed(&options, B9600);
+                cfsetospeed(&options, B9600);
+                //options.c_cflag |= CS8;
+                options.c_cflag |= CS8;
+                options.c_cflag &= ~CRTSCTS;
+                options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+                tcsetattr(fd, TCSANOW, &options);
+                ioctl(fd, TCFLSH, 2);
+            }
+            ```
+            defer {
+                `assert(close($fd.Number) == 0);`
+            }
+            loop {
+                spawn {
+                    await <5:s>
+                    error(:timeout)
+                }
+                val c = loop {
+                    ```
+                    char c;
+                    int ret = read((int)$fd.Number, &c, 1);
+//printf(">>> %d %d %d\n", ret, c, (int)$fd.Number);
+                    ```
+                    val ok = `:bool ret == 1`
+                    val x = `:char c`
+                    until ok and x
+                    await(:Pico.Frame)
+                }
+                broadcast(:c [c]) in :global
+            }
+        }
+    }
+}
+
+spawn {
+    every :c {
+        println(:c, it)
+    }
+}
+
+spawn Serial()
+
+pico.loop()
