@@ -9,6 +9,36 @@
 #include <sys/ioctl.h>
 ```
 
+func serial-init (fd) {
+    ```
+    {
+        int fd = $fd.Number;
+        int flags = fcntl(fd, F_GETFL, 0);
+        int ok    = fcntl(fd, F_SETFL, flags|O_NONBLOCK);
+        assert(ok == 0 && "serial error");
+        struct termios options;
+        tcgetattr(fd, &options);
+        cfsetispeed(&options, B9600);
+        cfsetospeed(&options, B9600);
+        //options.c_cflag |= CS8;
+        options.c_cflag |= CS8;
+        options.c_cflag &= ~CRTSCTS;
+        options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+        tcsetattr(fd, TCSANOW, &options);
+        ioctl(fd, TCFLSH, 2);
+    }
+    ```
+}
+
+func serial-read (fd) {
+    ```
+    char c;
+    int ret = read($fd.Number, &c, 1);
+    //printf(">>> %d %d %d\n", ret, c, (int)$fd.Number);
+    ```
+    `:bool ret==1` and `:char c`
+}
+
 task Serial (port) {
     val dev = "/dev/ttyACM" ++ to.string(port);
     println(dev)
@@ -21,24 +51,7 @@ task Serial (port) {
                 await <5:s>
             }
 println(:fd, fd)
-            ```
-            {
-                int fd = $fd.Number;
-                int flags = fcntl(fd, F_GETFL, 0);
-                int ok    = fcntl(fd, F_SETFL, flags|O_NONBLOCK);
-                assert(ok == 0 && "serial error");
-                struct termios options;
-                tcgetattr(fd, &options);
-                cfsetispeed(&options, B9600);
-                cfsetospeed(&options, B9600);
-                //options.c_cflag |= CS8;
-                options.c_cflag |= CS8;
-                options.c_cflag &= ~CRTSCTS;
-                options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-                tcsetattr(fd, TCSANOW, &options);
-                ioctl(fd, TCFLSH, 2);
-            }
-            ```
+            serial-init(fd)
             defer {
                 `assert(close($fd.Number) == 0);`
             }
@@ -48,14 +61,7 @@ println(:fd, fd)
                     error(:timeout)
                 }
                 val c = loop {
-                    ```
-                    char c;
-                    int ret = read((int)$fd.Number, &c, 1);
-//printf(">>> %d %d %d\n", ret, c, (int)$fd.Number);
-                    ```
-                    val ok = `:bool ret == 1`
-                    val x = `:char c`
-                    until ok and x
+                    until serial-read(fd)
                     await(:Pico.Frame)
                 }
                 broadcast(:Char [port,c]) in :global
