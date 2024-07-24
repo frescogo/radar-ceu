@@ -91,7 +91,7 @@ println(:ok, fd)
                     loop in {1 => 4} {
                         set str[+] = await spawn Serial-Read(fd)
                     }
-                    val num = to.number(str)
+                    val num = to.number(str) / 10 --> math.round
                     if num {
                         broadcast(:Radar [port,dir,num]) in :global
                     }
