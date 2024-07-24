@@ -1,5 +1,8 @@
 ^["@/pico/pico.ceu"]
 
+pico.state.set.grid(true)
+pico.state.set.size.window([1510,810])
+
 ```:pre
 #include <unistd.h>
 #include <errno.h>
@@ -46,7 +49,9 @@ task Serial-Read (fd) {
     }
 }
 
+enum { :esq, :dir }
 enum { :inb, :out }
+data :Radar = [port,dir,vel]
 
 task Serial (port) {
     val dev = "/dev/ttyACM" ++ to.string(port);
@@ -75,15 +80,15 @@ println(:ok, fd)
                         val c = await spawn Serial-Read(fd)
                         until c == `:char 0x88`
                     }
-                    loop {1 => 7} {
+                    loop in {1 => 7} {
                         await spawn Serial-Read(fd)
                     }
-                    val dir = await spawn Serial-Read(fd) thus {
+                    val dir = (await spawn Serial-Read(fd)) thus {
                         val bit = `:number ($it.Char >> 1) & 0x01`
-                        (bit == 0) and :out or :inb
+                        ((bit == 0) and :out) or :inb
                     }
                     val str = #[]
-                    loop {1 => 4} {
+                    loop in {1 => 4} {
                         set str[+] = await spawn Serial-Read(fd)
                     }
                     val num = to.number(str)
@@ -96,13 +101,68 @@ println(:ok, fd)
     }
 }
 
+func pos-x (pos) {
+    if pos == :esq
+        => [-65, -30]
+        => [ 65,  30]
+}
+
+func pos-arr (pos, dir) {
+    match [pos,dir] {
+        [:esq,:inb] => "<-"
+        [:esq,:out] => "->"
+        [:dir,:inb] => "->"
+        [:dir,:out] => "<-"
+    }
+}
+
+task Placar (port, pos) {
+    set pub = pos
+    var evt :Radar
+    par {
+        loop {
+            par-or {
+                await <500:ms>
+                set evt = nil
+            } with {
+                await :Radar | it.port==port {
+                    set evt = it
+                }
+            }
+        }
+    } with {
+        every :Pico.Draw {
+            val [a,b] = pos-x(pub)
+            pico.state.set.font("tiny.ttf", 10)
+            pico.output.draw.text([a,0], port->to.string)
+            if evt == nil {
+                pico.state.set.font("tiny.ttf", 30)
+                pico.output.draw.text([b,0], "--")
+            } else {
+
+                pico.state.set.font("tiny.ttf", 30)
+                pico.output.draw.text([b,0], evt.vel->to.string)
+
+                val arr = pos-arr(pub, evt.dir)
+                pico.state.set.font("tiny.ttf", 20)
+                pico.output.draw.text([b,-20], dir) where {
+                    val dir = if evt.dir==:inb => "<-" => "->"
+                }
+            }
+        }
+    }
+}
+
 spawn {
     every :Radar {
-        println(it)
+        ;;println(it)
     }
 }
 
 spawn Serial(0)
 spawn Serial(1)
+
+spawn Placar(0, :esq)
+spawn Placar(1, :dir)
 
 pico.loop()
