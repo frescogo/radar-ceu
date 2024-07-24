@@ -162,7 +162,18 @@ spawn {
 spawn Serial(0)
 spawn Serial(1)
 
-spawn Placar(0, :esq)
-spawn Placar(1, :dir)
+val p0 = spawn Placar(0, :esq)
+val p1 = spawn Placar(1, :dir)
+
+spawn {
+    loop {
+        await(:Pico.Mouse.Button.Dn)
+        set p0.pub = :dir
+        set p1.pub = :esq
+        await(:Pico.Mouse.Button.Dn)
+        set p0.pub = :esq
+        set p1.pub = :dir
+    }
+}
 
 pico.loop()
