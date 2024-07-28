@@ -1,8 +1,5 @@
 ^["@/pico/pico.ceu"]
 
-pico.state.set.grid(true)
-pico.state.set.size.window([1510,810])
-
 ```:pre
 #include <unistd.h>
 #include <errno.h>
@@ -11,6 +8,10 @@ pico.state.set.size.window([1510,810])
 #include <termios.h>
 #include <sys/ioctl.h>
 ```
+
+pico.set.size([800,450])
+
+val {{||}} = pico.pct-to-pos
 
 func serial-init (fd) {
     ```
@@ -103,8 +104,8 @@ println(:ok, fd)
 
 func pos-x (pos) {
     if pos == :esq
-        => [-65, -30]
-        => [ 65,  30]
+        => [0.05||0.5, 0.3||0.5, 0.45||0.5]
+        => [0.95||0.5, 0.7||0.5, 0.55||0.5]
 }
 
 func pos-arr (pos, dir) {
@@ -132,19 +133,19 @@ task Placar (port, pos) {
         }
     } with {
         every :Pico.Draw {
-            val [a,b] = pos-x(pub)
-            pico.state.set.font("tiny.ttf", 10)
-            pico.output.draw.text([a,0], port->to.string)
+            val [x-id, x-vel, x-arr] = pos-x(pub)
+            pico.set.font("tiny.ttf", 30)
+            pico.output.draw.text(x-id, port->to.string)
             if evt == nil {
-                pico.state.set.font("tiny.ttf", 30)
-                pico.output.draw.text([b,0], "--")
+                pico.set.font("tiny.ttf", 90)
+                pico.output.draw.text(x-vel, "--")
             } else {
-                pico.state.set.font("tiny.ttf", 30)
-                pico.output.draw.text([b,0], evt.vel->to.string)
+                pico.set.font("tiny.ttf", 90)
+                pico.output.draw.text(x-vel, evt.vel->to.string)
 
                 val arr = pos-arr(pub, evt.dir)
-                pico.state.set.font("tiny.ttf", 20)
-                pico.output.draw.text([b,-20], arr)
+                pico.set.font("tiny.ttf", 60)
+                pico.output.draw.text(x-arr, arr)
             }
         }
     }
