@@ -52,7 +52,7 @@ task Serial-Read (fd) {
 
 enum { :esq, :dir }
 enum { :inb, :out }
-data :Radar = [port,dir,vel]
+data :Radar = [port,tick,dir,vel]
 
 task Serial (port) {
     val dev = "/dev/ttyACM" ++ to.string(port);
@@ -94,7 +94,7 @@ println(:ok, fd)
                     }
                     val num = to.number(str) / 10 --> math.round
                     if num {
-                        broadcast(:Radar [port,dir,num]) in :global
+                        broadcast(:Radar [port,pico.get.ticks(),dir,num]) in :global
                     }
                 }
             }
@@ -127,7 +127,16 @@ task Placar (port, pos) {
                 set evt = nil
             } with {
                 await :Radar | it.port==port {
-                    set evt = it
+                    val ok = ifs {
+                        evt == nil                => true
+                        it.dir /= evt.dir         => true
+                        it.vel > evt.vel          => true
+                        it.tick > (evt.tick+1000) => true
+                        else                      => false
+                    }
+                    if ok {
+                        set evt = it
+                    }
                 }
             }
         }
