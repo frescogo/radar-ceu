@@ -8,7 +8,8 @@ val G = @[
 ]
 
 val VERSION = [6, 0, 0]
-val version = fp.map(VERSION, to.string) ->
+val version = VERSION ->
+                fp.map(to.string) ->
                 fp.intercalate(".") ->
                 fp.concat
 
@@ -31,9 +32,8 @@ val lay = [
     ;;x,  x,  x,  x,  x,  x,  x,  x,  x,
 ]
 
-val rs = layout-to-rects(lay) -> rects-to-real([#lay,#lay[0]])
-
-val t = spawn Layout(lay)
+val rs = layout-to-rects(lay)
+val t = spawn Grid(rs)
 
 spawn {
     par {
