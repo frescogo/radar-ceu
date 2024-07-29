@@ -1,7 +1,12 @@
 ^["@/pico/pico.ceu"]
 ^["@/pico/layout.ceu"]
+^["fp.ceu"]
 
-pico.set.size([800,450])
+val VERSION = [6, 0, 0]
+val version = fp.map(VERSION, to.string) -> fp.intercalate(".") -> fp.concat
+
+pico.set.title <-- "FrescoGO - v" ++ version
+pico.set.size  <-- [800,450]
 
 val lay = [
     [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],

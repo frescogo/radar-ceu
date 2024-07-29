@@ -1,0 +1,74 @@
+;; composition
+
+func {{<|<}} (f,g) {
+    func (v) {
+        f(g(v))
+    }
+}
+
+data :Fp = [concat, drop-first, drop-last, intercalate, map, take-first]
+
+val fp :Fp = do {
+    func x-concat (vecs) {
+        val ret = #[]
+        loop v in vecs {
+            ret <++ v
+        }
+        ret
+    }
+    func x-drop-first (vec, n) {
+        val ret = #[]
+        loop i in {(n or 1) => #vec{ {
+            set ret[+] = vec[i]
+        }
+        ret
+    }
+    func x-drop-last (vec, n) {
+        val ret = #[]
+        loop i in {0 => #vec-(n or 1){ {
+            set ret[i] = vec[i]
+        }
+        ret
+    }
+    func x-intercalate (vec, sep) {
+        val ret = #[]
+        loop [i,v] in vec->to.iter([:idx,:val]) {
+            if i > 0 {
+                set ret[+] = sep
+            }
+            set ret[+] = v
+        }
+        ret
+    }
+    func x-map (vec, f) {
+        val ret = #[]
+        loop v in vec {
+            set ret[+] = f(v)
+        }
+        ret
+    }
+    func x-take-first (vec, n) {
+        val ret = #[]
+        loop i in {0 => (n or 1){ {
+            set ret[i] = vec[i]
+        }
+        ret
+    }
+    [x-concat, x-drop-first, x-drop-last, x-intercalate, x-map, x-take-first]
+}
+
+test {
+    assert(fp.concat([#[1],#[],#[2,3]]) === #[1,2,3])
+    assert(fp.intercalate(#[1,2,3], 0) === #[1,0,2,0,3])
+    assert(fp.map(#[1,2,3], to.string) === #["1","2","3"])
+
+    assert(fp.drop-first(#[1,2,3],2) === #[3])
+    assert(fp.drop-first(#[1]) === #[])
+    assert(fp.drop-first(#[],5) === #[])
+    assert(fp.drop-last(#[1,2,3],2) === #[1])
+    assert(fp.drop-last(#[1]) === #[])
+    assert(fp.drop-last(#[],5) === #[])
+    assert(fp.take-first(#[1]) === #[1])
+    assert(fp.take-first(#[1,2,3],2) === #[1,2])
+    ;;assert(take-first(#[]) === #[])         ;; TODO: out of bounds
+}
