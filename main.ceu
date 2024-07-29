@@ -2,8 +2,15 @@
 ^["@/pico/layout.ceu"]
 ^["fp.ceu"]
 
+val G = @[
+    logos   = ["data/fresco-radar.png", "data/fresco-radar.png"],
+    players = ["Atleta 1", "Atleta 2"],
+]
+
 val VERSION = [6, 0, 0]
-val version = fp.map(VERSION, to.string) -> fp.intercalate(".") -> fp.concat
+val version = fp.map(VERSION, to.string) ->
+                fp.intercalate(".") ->
+                fp.concat
 
 pico.set.title <-- "FrescoGO - v" ++ version
 pico.set.size  <-- [800,450]
@@ -24,5 +31,23 @@ val lay = [
     ;;x,  x,  x,  x,  x,  x,  x,  x,  x,
 ]
 
+val rs = layout-to-rects(lay) -> rects-to-real([#lay,#lay[0]])
+
 val t = spawn Layout(lay)
+
+spawn {
+    par {
+        every :Pico.Draw {
+            pico.output.draw.image(rs[0].(:Rect).pos, G.logos[0])
+            pico.output.draw.image(rs[2].(:Rect).pos, G.logos[1])
+
+            pico.set.font("data/LiberationSans-Bold.ttf", 18)
+            pico.output.draw.text(rs[3].(:Rect).pos, G.players[0])
+            pico.output.draw.text(rs[4].(:Rect).pos, G.players[1])
+        }
+    } with {
+    }
+}
+
+
 pico.loop()
