@@ -13,13 +13,14 @@ val version = VERSION ->
                 fp.intercalate(".") ->
                 fp.concat
 
-pico.set.title <-- "FrescoGO - v" ++ version
-pico.set.size  <-- [800,450]
+pico.set.title          <-- "FrescoGO - v" ++ version
+pico.set.size           <-- [1280,720]
+pico.set.color.clear    <-- [0xFF,0xFF,0xFF,0xFF]
 
 val lay = [
     [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
     [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
-    [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
+    [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
     [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
     [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
     [5,  5,  5,  5,  6,  6,  6,  7,  7,  7,  7],
@@ -32,8 +33,16 @@ val lay = [
     ;;x,  x,  x,  x,  x,  x,  x,  x,  x,
 ]
 
-val rs = layout-to-rects(lay)
+val rs = lay -> layout-to-rects
 val t = spawn Grid(rs)
+
+val lay-x8 = [
+    [0, 0, 0],
+    [1, 1, 1],
+]
+println(rs[8])
+val rs-x8 = lay-x8 -> layout-to-rects(rs[8])
+val t-x8 = spawn Grid(rs-x8)
 
 spawn {
     par {
@@ -41,7 +50,8 @@ spawn {
             pico.output.draw.image(rs[0].(:Rect).pos, G.logos[0])
             pico.output.draw.image(rs[2].(:Rect).pos, G.logos[1])
 
-            pico.set.font("data/LiberationSans-Bold.ttf", 18)
+            pico.set.font("data/LiberationSans-Bold.ttf", 50)
+            pico.set.color.draw([0x00,0x00,0xFF,0xFF])
             pico.output.draw.text(rs[3].(:Rect).pos, G.players[0])
             pico.output.draw.text(rs[4].(:Rect).pos, G.players[1])
         }
