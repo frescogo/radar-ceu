@@ -58,7 +58,7 @@ task Serial (port) {
     val dev = "/dev/ttyACM" ++ to.string(port);
     println(dev)
     loop {
-        catch :timeout {
+        do :timeout {
             val fd = loop {
                 val c = to.pointer(dev)
                 val x = `:number open($c.Pointer, O_RDONLY)`;
@@ -75,7 +75,7 @@ println(:ok, fd)
             loop {
                 par-or {
                     await <5:s>
-                    error(:timeout)
+                    escape(:timeout)
                 } with {
                     loop {
                         val c = await spawn Serial-Read(fd)

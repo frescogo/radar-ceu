@@ -8,27 +8,27 @@ func {{<|<}} (f,g) {
 
 data :Fp = [concat, drop-first, drop-last, intercalate, map, take-first]
 
-val fp :Fp = do {
+val fp :Fp = group {
     func x-concat (vecs) {
         val ret = #[]
         loop v in vecs {
             ret <++ v
         }
-        ret
+        drop(ret)
     }
     func x-drop-first (vec, n) {
         val ret = #[]
         loop i in {(n or 1) => #vec{ {
             set ret[+] = vec[i]
         }
-        ret
+        drop(ret)
     }
     func x-drop-last (vec, n) {
         val ret = #[]
         loop i in {0 => #vec-(n or 1){ {
             set ret[i] = vec[i]
         }
-        ret
+        drop(ret)
     }
     func x-intercalate (vec, sep) {
         val ret = #[]
@@ -38,7 +38,7 @@ val fp :Fp = do {
             }
             set ret[+] = v
         }
-        ret
+        drop(ret)
     }
     func x-map (vec, f) {
         val ret = #[]
@@ -52,7 +52,7 @@ val fp :Fp = do {
         loop i in {0 => (n or 1){ {
             set ret[i] = vec[i]
         }
-        ret
+        drop(ret)
     }
     [x-concat, x-drop-first, x-drop-last, x-intercalate, x-map, x-take-first]
 }

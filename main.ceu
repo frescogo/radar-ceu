@@ -13,9 +13,9 @@ val version = VERSION ->
                 fp.intercalate(".") ->
                 fp.concat
 
-pico.set.title          <-- "FrescoGO - v" ++ version
-pico.set.size           <-- [1280,720]
-pico.set.color.clear    <-- [0xFF,0xFF,0xFF,0xFF]
+pico.set.title       <-- "FrescoGO - v" ++ version
+pico.set.size        <-- [1280,720]
+pico.set.color.clear <-- [0xFF,0xFF,0xFF,0xFF]
 
 val lay = [
     [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
@@ -36,24 +36,39 @@ val lay = [
 val rs = lay -> layout-to-rects
 val t = spawn Grid(rs)
 
-val lay-x8 = [
-    [0, 0, 0],
-    [1, 1, 1],
-]
-println(rs[8])
-val rs-x8 = lay-x8 -> layout-to-rects(rs[8])
-val t-x8 = spawn Grid(rs-x8)
+group {
+    val lay-x08 = [
+        [0, 1, 1, 1, 2],
+        [3, 1, 1, 1, 4],
+    ]
+    val rs-x08 = lay-x08 -> layout-to-rects(rs[8])
+    val t-x08 = spawn Grid(rs-x08)
+
+    val rs-x10 = lay-x08 -> layout-to-rects(rs[10])
+    val t-x10 = spawn Grid(rs-x10)
+}
 
 spawn {
     par {
         every :Pico.Draw {
+            ;; logos
+            pico.set.image.size([150,nil])
             pico.output.draw.image(rs[0].(:Rect).pos, G.logos[0])
             pico.output.draw.image(rs[2].(:Rect).pos, G.logos[1])
 
+            ;; players
             pico.set.font("data/LiberationSans-Bold.ttf", 50)
             pico.set.color.draw([0x00,0x00,0xFF,0xFF])
             pico.output.draw.text(rs[3].(:Rect).pos, G.players[0])
             pico.output.draw.text(rs[4].(:Rect).pos, G.players[1])
+            pico.set.color.draw([0x00,0x00,0x00,0xFF])
+
+            ;; icons
+            pico.set.image.size([30,30])
+            pico.output.draw.image(rs-x08[0].(:Rect).pos, "data/icos/raq-03.png")
+            pico.output.draw.image(rs-x10[2].(:Rect).pos, "data/icos/raq-03.png")
+            pico.output.draw.image(rs-x08[3].(:Rect).pos, "data/icos/flag.png")
+            pico.output.draw.image(rs-x10[4].(:Rect).pos, "data/icos/flag.png")
         }
     } with {
     }
