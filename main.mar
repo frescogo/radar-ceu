@@ -1,0 +1,88 @@
+^include(@/pico/pico.mar)
+^include(@/pico/layout.mar)
+
+var glb: [
+    logos:   [\Char,\Char],
+    players: [\Char,\Char],
+] = [
+    ["data/fresco-radar.png", "data/fresco-radar.png"],
+    ["Atleta 1", "Atleta 2"],
+]
+
+var version = #[6, 0, 0]
+var ver_str: #[32*Char] = string_empty()
+do {
+    loop i in #version {
+        if i > 0 {
+            string_cat_pointer(\ver_str, ".")
+        }
+        set ver_str = ver_str ++ string_from_int(version[i])
+    }
+}
+;;print(ver_str)
+
+pm_set_title("FrescoGO - v" ++ ver_str)
+pm_set_size(WH [1280,720])
+pm_set_color_clear(Color [0xFF,0xFF,0xFF,0xFF])
+
+;;;
+val lay = [
+    [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
+    [0,  0,  0,  0,  1,  1,  1,  2,  2,  2,  2],
+    [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
+    [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
+    [3,  3,  3,  3,  1,  1,  1,  4,  4,  4,  4],
+    [5,  5,  5,  5,  6,  6,  6,  7,  7,  7,  7],
+    [5,  5,  5,  5,  6,  6,  6,  7,  7,  7,  7],
+    [5,  5,  5,  5,  6,  6,  6,  7,  7,  7,  7],
+    [8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10],
+    [8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10],
+    [8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10],
+    [8,  8,  8,  8,  9,  9,  9, 10, 10, 10, 10],
+    ;;x,  x,  x,  x,  x,  x,  x,  x,  x,
+]
+
+val rs = lay -> layout-to-rects
+val t = spawn Grid(rs)
+
+group {
+    val lay-x08 = [
+        [0, 1, 1, 1, 2],
+        [3, 1, 1, 1, 4],
+    ]
+    val rs-x08 = lay-x08 -> layout-to-rects(rs[8])
+    val t-x08 = spawn Grid(rs-x08)
+
+    val rs-x10 = lay-x08 -> layout-to-rects(rs[10])
+    val t-x10 = spawn Grid(rs-x10)
+}
+
+spawn {
+    par {
+        every :Pico.Draw {
+            ;; logos
+            pm_set_image_size([150,nil])
+            pm_output_draw_image(rs[0].(:Rect).pos, glb.logos[0])
+            pm_output_draw_image(rs[2].(:Rect).pos, glb.logos[1])
+
+            ;; players
+            pm_set_font("data/LiberationSans-Bold.ttf", 50)
+            pm_set_color_draw([0x00,0x00,0xFF,0xFF])
+            pm_output_draw_text(rs[3].(:Rect).pos, glb.players[0])
+            pm_output_draw_text(rs[4].(:Rect).pos, glb.players[1])
+            pm_set_color_draw([0x00,0x00,0x00,0xFF])
+
+            ;; icons
+            pm_set_image_size([30,30])
+            pm_output_draw_image(rs-x08[0].(:Rect).pos, "data/icos/raq-03.png")
+            pm_output_draw_image(rs-x10[2].(:Rect).pos, "data/icos/raq-03.png")
+            pm_output_draw_image(rs-x08[3].(:Rect).pos, "data/icos/flag.png")
+            pm_output_draw_image(rs-x10[4].(:Rect).pos, "data/icos/flag.png")
+        }
+    } with {
+    }
+}
+
+
+pm_loop()
+;;;
