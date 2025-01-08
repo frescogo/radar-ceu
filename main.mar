@@ -10,20 +10,23 @@ var glb: [
 ]
 
 var version = #[6, 0, 0]
-var ver_str: #[32*Char] = string_empty()
+var ver_str: #[32*Char]
 do {
     loop i in #version {
         if i > 0 {
-            string_cat_pointer(\ver_str, ".")
+            set ver_str = ver_str ++ "."
         }
         set ver_str = ver_str ++ string_from_int(version[i])
     }
 }
-;;print(ver_str)
+print(ver_str)
 
-pm_set_title("FrescoGO - v" ++ ver_str)
+pm_set_title(\("FrescoGO - v" ++ ver_str))
 pm_set_size(WH [1280,720])
 pm_set_color_clear(Color [0xFF,0xFF,0xFF,0xFF])
+
+pm_output_present()
+pm_input_event(`SDL_MOUSEBUTTONDOWN`)
 
 ;;;
 val lay = [
