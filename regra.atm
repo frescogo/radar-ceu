@@ -2,7 +2,7 @@ val TOTAL = 6*60*1000   ;; 6-min total time
 val FALL  = 12*1000     ;; 12-sec time penalty
 
 func Game () {
-    set pub = @{
+    set g = @{
         time  = 0,
         phase = :speed,
         seqs  = @{
@@ -10,56 +10,62 @@ func Game () {
             power = #{},
         },
     }
+    set pub = g
 
-    var max = TOTAL / 2
+    func Seqs () {
+        ;; Seqs
+        loop i {
+            ;; Seq
+            await :serve
+            var now = 0
+            emit [:global] (:go.seq, true, i)
+            defer {
+                emit [:global] (:go.seq, false, i)
+            }
+            watching :fall {
+                val seq = #{}
+                set g.seqs[g.phase][+] = seq
+
+                val s0 = await :shot
+                set s0.now = now
+                set seq[+] = s0
+                emit [:global] (:go.shot, s0)
+
+                par {
+                    every _,dt in 'sdl.step' {
+                        set g.time = g.time + dt
+                        set now = now + dt
+                    }
+                } with {
+                    every s in :shot {
+                        set s.now = now
+                        set seq[+] = s
+                        emit [:global] (:go.shot, s)
+                    }
+                }
+            }
+            emit [:global] (:go.fall, i)
+        }
+    }
 
     ;; Game
     emit [:global] (:go.game, true)
-    defer {
-        emit [:global] (:go.game, false)
-    }
-    loop _ in 2 {
-        ;; Phase
-        emit [:global] (:go.phase, true, pub.phase)
-        defer {
-            emit [:global] (:go.phase, false, pub.phase)
-            set max = TOTAL
-            set pub.phase = :power
+    do {
+        ;; Phase :speed
+        set g.phase = :speed
+        emit [:global] (:go.phase, true, :speed)
+        watching \{g.time >= (TOTAL/2)} {
+            await Seqs()
         }
-        watching \{pub.time >= max} {
-            ;; Seqs
-            loop i {
-                ;; Seq
-                await :serve
-                var now = 0
-                emit [:global] (:go.seq, true, i)
-                defer {
-                    emit [:global] (:go.seq, false, i)
-                }
-                watching :fall {
-                    val seq = #{}
-                    set pub.seqs[pub.phase][+] = seq
+        emit [:global] (:go.phase, false, :speed)
 
-                    val s0 = await :shot
-                    set s0.now = now
-                    set seq[+] = s0
-                    emit [:global] (:go.shot, s0)
-
-                    par {
-                        every _,dt in 'sdl.step' {
-                            set pub.time = pub.time + dt
-                            set now = now + dt
-                        }
-                    } with {
-                        every s in :shot {
-                            set s.now = now
-                            set seq[+] = s
-                            emit [:global] (:go.shot, s)
-                        }
-                    }
-                }
-                emit [:global] (:go.fall, i)
-            }
+        ;; Phase :power
+        set g.phase = :power
+        emit [:global] (:go.phase, true, :power)
+        watching \{g.time >= (TOTAL/2)} {
+            await Seqs()
         }
+        emit [:global] (:go.phase, false, :power)
     }
+    emit [:global] (:go.game, false)
 }
