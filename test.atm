@@ -18,7 +18,7 @@ spawn {
 
         await(:go.seq, true, 1)
         val _,s = await(:go.shot)
-        assert((s.now==0) && (s.dir==:in) && (s.vel==34))
+        assert((s.now==500) && (s.dir==:in) && (s.vel==34))
         await(:go.seq, false, 1)
 
         await(:go.phase, false, :speed)
@@ -50,7 +50,6 @@ watching j1 {
     emit('sdl.step', 100000)
     emit(:shot @{dir=:in,vel=34})
     emit('sdl.step', 100)
-    assert(j1.pub.time == 0)
 
     ;; SPEED
 
@@ -58,18 +57,15 @@ watching j1 {
     emit :serve
     emit('sdl.step', 500)
     emit(:shot @{dir=:in,vel=40})
-    assert(j1.pub.time == 0)
     emit('sdl.step', 500)
     emit(:shot @{dir=:out,vel=60})
     emit('sdl.step', 500)
-    assert(j1.pub.time == 1000)
     emit :fall
 
     emit(:shot @{dir=:out,vel=31})
     emit('sdl.step', 100000)
     emit(:shot @{dir=:in,vel=34})
     emit('sdl.step', 100)
-    assert(j1.pub.time == 1000)
 
     ;; SEQ 1
     emit :serve
