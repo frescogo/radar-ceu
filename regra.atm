@@ -1,39 +1,54 @@
-func Jogo () {
-    set pub = @{
-        time = 0,
-        now  = nil,
-        seqs = #{},
-    }
+val TOTAL = 6*60*1000
 
-    loop {
+func Game () {
+    val game = @{
+        time  = 0,
+        now   = nil,
+        phase = :speed,
+        seqs  = @{
+            speed = #{},
+            power = #{},
+        },
+    }
+    set pub = game
+
+    func Seq () {
         watching :fall {
             await :serve
             print :serve
 
             val seq = #{}
-            set pub.seqs[+] = seq
+            set game.seqs[+] = seq
 
             val s0 = await :shot
             set seq[+] = s0
-            set pub.now = 0
-            set s0.now = pub.now
+            set game.now = 0
+            set s0.now = game.now
             print(xtostring(s0))
 
             par {
                 every _,dt in 'sdl.step' {
-                    set pub.time = pub.time + dt
-                    set pub.now  = pub.now + dt
+                    set game.time = game.time + dt
+                    set game.now  = game.now + dt
                 }
             } with {
                 every s in :shot {
                     set seq[+] = s
-                    set s.now = pub.now
+                    set s.now = game.now
                     print(xtostring(s))
                 }
             }
         }
-        set pub.now = nil
+        set game.now = nil
         print :fall
         print ""
+    }
+
+
+    watching \{game.time >= TOTAL} {
+        watching \{game.time >= (TOTAL/2)} {
+            loop {
+            }
+        }
     }
 }
