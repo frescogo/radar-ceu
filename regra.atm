@@ -16,7 +16,9 @@ func Game () {
         ;; Seqs
         loop i {
             ;; Seq
+print(:serve, true, i)
             await :serve
+print(:seq, true, i)
             var now = 0
             emit [:global] (:go.seq, true, i)
             defer {

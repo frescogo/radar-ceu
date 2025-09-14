@@ -21,35 +21,64 @@ spawn {
     await(:go.phase, false, :speed)
     await(:go.phase, true, :power)
 
+print:x
+    await(:go.seq, true, 0)
+print:y
+    loop i in 4 {
+        val _,so = await(:go.shot)
+        assert((s.now==(i*500)) && (s.dir==:out) && (s.vel==50))
+        val _,si = await(:go.shot)
+        assert((s.now==((i*500) + 250)) && (s.dir==:in) && (s.vel==50))
+    }
+    await(:go.seq, false, 0)
+
     print :ok
 }
 
-pin jogo = spawn Game()
+pin j1 = spawn Game()
+watching j1 {
+    emit(:shot @{dir=:out,vel=31})
+    emit('sdl.step', 100000)
+    emit(:shot @{dir=:in,vel=34})
+    emit('sdl.step', 100)
+    assert(j1.pub.time == 0)
 
-emit(:shot @{dir=:out,vel=31})
-emit('sdl.step', 100000)
-emit(:shot @{dir=:in,vel=34})
-emit('sdl.step', 100)
-assert(jogo.pub.time == 0)
+    ;; SPEED
 
-emit :serve
-emit('sdl.step', 500)
-emit(:shot @{dir=:in,vel=40})
-assert(jogo.pub.time == 0)
-emit('sdl.step', 500)
-emit(:shot @{dir=:out,vel=60})
-emit('sdl.step', 500)
-assert(jogo.pub.time == 1000)
-emit :fall
+    ;; SEQ 0
+    emit :serve
+    emit('sdl.step', 500)
+    emit(:shot @{dir=:in,vel=40})
+    assert(j1.pub.time == 0)
+    emit('sdl.step', 500)
+    emit(:shot @{dir=:out,vel=60})
+    emit('sdl.step', 500)
+    assert(j1.pub.time == 1000)
+    emit :fall
 
-emit(:shot @{dir=:out,vel=31})
-emit('sdl.step', 100000)
-emit(:shot @{dir=:in,vel=34})
-emit('sdl.step', 100)
-assert(jogo.pub.time == 1000)
+    emit(:shot @{dir=:out,vel=31})
+    emit('sdl.step', 100000)
+    emit(:shot @{dir=:in,vel=34})
+    emit('sdl.step', 100)
+    assert(j1.pub.time == 1000)
 
-emit :serve
-emit(:shot @{dir=:in,vel=34})
-emit('sdl.step', (6*60*1000)/2)
-emit :fall
+    ;; SEQ 1
+    emit :serve
+    emit(:shot @{dir=:in,vel=34})
+    emit('sdl.step', (6*60*1000)/2)
+    emit :fall
+
+    ;; POWER
+
+print:serve
+    emit :serve
+    loop _ in 4 {
+        emit(:shot @{dir=:out,vel=50})
+        emit('sdl.step', 250)
+        emit(:shot @{dir=:in,vel=50})
+        emit('sdl.step', 250)
+    }
+    emit('sdl.step', (6*60*1000)/2)
+}
+
 print :ok
