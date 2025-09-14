@@ -16,9 +16,7 @@ func Game () {
         ;; Seqs
         loop i {
             ;; Seq
-print(:serve, true, i)
             await :serve
-print(:seq, true, i)
             var now = 0
             emit [:global] (:go.seq, true, i)
             defer {
@@ -64,7 +62,7 @@ print(:seq, true, i)
         ;; Phase :power
         set g.phase = :power
         emit [:global] (:go.phase, true, :power)
-        watching \{g.time >= (TOTAL/2)} {
+        watching \{g.time >= TOTAL} {
             await Seqs()
         }
         emit [:global] (:go.phase, false, :power)
