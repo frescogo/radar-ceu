@@ -13,7 +13,11 @@ spawn {
         assert((s.now==0) && (s.dir==:in) && (s.vel==40))
         val _,s = await(:go.shot)
         assert((s.now==500) && (s.dir==:out) && (s.vel==60))
+        val _,t = await(:go.time)
+        assert(t == 1000)
         await(:go.fall, 0)
+        val _,t = await(:go.time)
+        assert(t == 500)
         await(:go.seq, false, 0)
 
         await(:go.seq, true, 1)

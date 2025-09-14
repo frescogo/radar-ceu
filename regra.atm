@@ -11,12 +11,12 @@ func Seqs (seqs) {
             emit [:global] (:go.seq, false, i)
         }
         var old = now
+        emit [:global] (:go.time, now)
         watching :fall {
             val seq = #{}
             set seqs[+] = seq
 
             val s0 = await :shot
-            emit [:global] (:go.time, now)
             set s0.now = now
             set seq[+] = s0
             emit [:global] (:go.shot, s0)
@@ -37,6 +37,7 @@ func Seqs (seqs) {
         }
         set now = old
         emit [:global] (:go.fall, i)
+        emit [:global] (:go.time, now)
     }
 }
 
