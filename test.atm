@@ -1,10 +1,30 @@
 require "atmos.env.clock"
 require "regra"
 
-pin jogo = spawn Game()
-
 spawn {
+    await(:go.game, true)
+    await(:go.phase, true, :speed)
+
+    await(:go.seq, true, 0)
+    val _,s = await(:go.shot)
+    assert((s.now==0) && (s.dir==:in) && (s.vel==40))
+    val _,s = await(:go.shot)
+    assert((s.now==500) && (s.dir==:out) && (s.vel==60))
+    await(:go.fall, 0)
+    await(:go.seq, false, 0)
+
+    await(:go.seq, true, 1)
+    val _,s = await(:go.shot)
+    assert((s.now==0) && (s.dir==:in) && (s.vel==34))
+    await(:go.seq, false, 1)
+
+    await(:go.phase, false, :speed)
+    await(:go.phase, true, :power)
+
+    print :ok
 }
+
+pin jogo = spawn Game()
 
 emit(:shot @{dir=:out,vel=31})
 emit('sdl.step', 100000)
@@ -16,28 +36,11 @@ emit :serve
 emit('sdl.step', 500)
 emit(:shot @{dir=:in,vel=40})
 assert(jogo.pub.time == 0)
-assert (
-    (jogo.pub.phase == :speed) &&
-    (#jogo.pub.seqs.speed == 1) &&
-    (jogo.pub.seqs.speed[0] --> \{
-        (#it == 1) && (it[0] --> \{
-            (it.now==0) && (it.dir==:in) && (it.vel==40)
-        })
-    })
-)
 emit('sdl.step', 500)
 emit(:shot @{dir=:out,vel=60})
 emit('sdl.step', 500)
 assert(jogo.pub.time == 1000)
 emit :fall
-assert (
-    (#jogo.pub.seqs.speed == 1) &&
-    (jogo.pub.seqs.speed[0] --> \{
-        (#it == 2) && (it[1] --> \{
-            (it.now==500) && (it.dir==:out) && (it.vel==60)
-        })
-    })
-)
 
 emit(:shot @{dir=:out,vel=31})
 emit('sdl.step', 100000)

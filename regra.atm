@@ -1,4 +1,5 @@
-val TOTAL = 6*60*1000
+val TOTAL = 6*60*1000   ;; 6-min total time
+val FALL  = 12*1000     ;; 12-sec time penalty
 
 func Game () {
     set pub = @{
@@ -11,29 +12,38 @@ func Game () {
     }
 
     var max = TOTAL / 2
-    var now = 0
 
     ;; Game
-    emit(:go, true)
+    emit [:global] (:go.game, true)
+    defer {
+        emit [:global] (:go.game, false)
+    }
     loop _ in 2 {
         ;; Phase
-        emit(:go.phase, pub.phase, true)
+        emit [:global] (:go.phase, true, pub.phase)
+        defer {
+            emit [:global] (:go.phase, false, pub.phase)
+            set max = TOTAL
+            set pub.phase = :power
+        }
         watching \{pub.time >= max} {
             ;; Seqs
             loop i {
                 ;; Seq
-                emit(:go.seq, i+1, true)
+                await :serve
+                var now = 0
+                emit [:global] (:go.seq, true, i)
+                defer {
+                    emit [:global] (:go.seq, false, i)
+                }
                 watching :fall {
-                    await :serve
-                    emit :go.serve
-
                     val seq = #{}
                     set pub.seqs[pub.phase][+] = seq
 
                     val s0 = await :shot
                     set s0.now = now
                     set seq[+] = s0
-                    emit(:go.shot, s0)
+                    emit [:global] (:go.shot, s0)
 
                     par {
                         every _,dt in 'sdl.step' {
@@ -44,26 +54,12 @@ func Game () {
                         every s in :shot {
                             set s.now = now
                             set seq[+] = s
-                            emit(:go.shot, s)
+                            emit [:global] (:go.shot, s)
                         }
                     }
                 }
-                set now = 0
-                emit(:go.fall)
+                emit [:global] (:go.fall, i)
             }
         }
-
-        emit(:go.pre)
-        watching :fall {
-            val sN = await :shot
-            set sN.now = now
-            set seq[+] = sN
-            emit(:go.shot, sN)
-        }
-        emit(:go.pos)
-
-        set max = TOTAL
-        set pub.phase = :power
     }
-    print(:go, false)
 }
