@@ -44,50 +44,59 @@ spawn {
 
     print("GAME 2: ??")
     do {
+        await(:go.game, true)
     }
     print("GAME 2: ok")
 }
 
-pin j1 = spawn Game()
-watching j1 {
-    emit(:shot @{dir=:out,vel=31})
-    emit('sdl.step', 100000)
-    emit(:shot @{dir=:in,vel=34})
-    emit('sdl.step', 100)
+do {
+    pin j = spawn Game()
+    watching j {
+        emit(:shot @{dir=:out,vel=31})
+        emit('sdl.step', 100000)
+        emit(:shot @{dir=:in,vel=34})
+        emit('sdl.step', 100)
 
-    ;; SPEED
+        ;; SPEED
 
-    ;; SEQ 0
-    emit :serve
-    emit('sdl.step', 500)
-    emit(:shot @{dir=:in,vel=40})
-    emit('sdl.step', 500)
-    emit(:shot @{dir=:out,vel=60})
-    emit('sdl.step', 500)
-    emit :fall
+        ;; SEQ 0
+        emit :serve
+        emit('sdl.step', 500)
+        emit(:shot @{dir=:in,vel=40})
+        emit('sdl.step', 500)
+        emit(:shot @{dir=:out,vel=60})
+        emit('sdl.step', 500)
+        emit :fall
 
-    emit(:shot @{dir=:out,vel=31})
-    emit('sdl.step', 100000)
-    emit(:shot @{dir=:in,vel=34})
-    emit('sdl.step', 100)
+        emit(:shot @{dir=:out,vel=31})
+        emit('sdl.step', 100000)
+        emit(:shot @{dir=:in,vel=34})
+        emit('sdl.step', 100)
 
-    ;; SEQ 1
-    emit :serve
-    emit(:shot @{dir=:in,vel=34})
-    emit('sdl.step', (6*60*1000)/2)
-    emit :fall
+        ;; SEQ 1
+        emit :serve
+        emit(:shot @{dir=:in,vel=34})
+        emit('sdl.step', (6*60*1000)/2)
+        emit :fall
 
-    ;; POWER
+        ;; POWER
 
-    ;; SEQ 0
-    emit :serve
-    loop _ in 4 {
-        emit(:shot @{dir=:out,vel=50})
-        emit('sdl.step', 250)
-        emit(:shot @{dir=:in,vel=50})
-        emit('sdl.step', 250)
+        ;; SEQ 0
+        emit :serve
+        loop _ in 4 {
+            emit(:shot @{dir=:out,vel=50})
+            emit('sdl.step', 250)
+            emit(:shot @{dir=:in,vel=50})
+            emit('sdl.step', 250)
+        }
+        emit('sdl.step', (6*60*1000)/2)
     }
-    emit('sdl.step', (6*60*1000)/2)
+}
+
+do {
+    pin j = spawn Game()
+    watching j {
+    }
 }
 
 print :ok

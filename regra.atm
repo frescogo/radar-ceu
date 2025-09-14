@@ -46,6 +46,7 @@ func Game () {
         speed = #{},
         power = #{},
     }
+    set pub = seqs
 
     ;; Game
     emit [:global] (:go.game, true)
