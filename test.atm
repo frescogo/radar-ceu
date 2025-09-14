@@ -1,0 +1,45 @@
+require "atmos.env.clock"
+require "regra"
+
+pin jogo = spawn Game()
+
+emit(:shot @{dir=:out,vel=31})
+emit('sdl.step', 100000)
+emit(:shot @{dir=:in,vel=34})
+emit('sdl.step', 100)
+assert(jogo.pub.now == nil)
+
+emit :serve
+emit('sdl.step', 500)
+emit(:shot @{dir=:in,vel=40})
+assert(jogo.pub.now == 0)
+assert (
+    (#jogo.pub.seqs == 1) &&
+    (jogo.pub.seqs[0] --> \{
+        (#it == 1) && (it[0] --> \{
+            (it.now==0) && (it.dir==:in) && (it.vel==40)
+        })
+    })
+)
+emit('sdl.step', 500)
+emit(:shot @{dir=:out,vel=60})
+emit('sdl.step', 500)
+assert(jogo.pub.now == 1000)
+emit :fall
+assert (
+    (#jogo.pub.seqs == 1) &&
+    (jogo.pub.seqs[0] --> \{
+        (#it == 2) && (it[1] --> \{
+            (it.now==500) && (it.dir==:out) && (it.vel==60)
+        })
+    })
+)
+
+emit(:shot @{dir=:out,vel=31})
+emit('sdl.step', 100000)
+emit(:shot @{dir=:in,vel=34})
+emit('sdl.step', 100)
+assert(jogo.pub.now == nil)
+
+emit :serve
+emit :fall
