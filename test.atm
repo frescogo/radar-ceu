@@ -15,8 +15,7 @@ spawn {
         assert((s.now==500) && (s.dir==:out) && (s.vel==60))
         val _,t = await(:go.time)
         assert(t == 1000)
-        await(:go.fall, 0)
-        val _,t = await(:go.time)
+        val _,_,t = await(:go.fall, 0)
         assert(t == (500+12000))
         await(:go.seq, false, 0)
 
@@ -48,10 +47,16 @@ spawn {
         await(:go.phase, true, :speed)
 
         await(:go.seq, true, 0)
-        loop _ in 63 {
-            await(:go.shot)
+        loop i in 63 {
+            val _,s = await(:go.shot)
+            if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
+                assert(s.valid)
+            } else {
+                assert(!s.valid)
+            }
         }
-        await(:go.fall, 0)
+        val _,_,t = await(:go.fall, 0)
+        assert(t == 49252)
         await(:go.seq, false, 0)
     }
     print("GAME 2: ok")

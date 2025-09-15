@@ -57,11 +57,9 @@ func Seqs (seqs) {
                 }
             }
         }
-    ;; TODO: dec time
 
         set now = old + FALL
-        emit [:global] (:go.fall, i)
-        emit [:global] (:go.time, now)
+        emit [:global] (:go.fall, i, now)
     }
 }
 
