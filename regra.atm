@@ -1,17 +1,17 @@
 val TIME = 3*60*1000    ;; 3-min total phase time
 val FALL = 12*1000      ;; 12-sec fall time penalty
 
-func speed (seqs) {
+func sum (seqs) {
     var pts = 0
     loop _,seq in seqs {
         loop i,s in seq {
             if s.valid {
-                set pts = pts + s.vel
+                set pts = pts + (s.vel*s.vel)
                 ;;print(i, s.vel, pts)
             }
         }
     }
-    pts
+    (pts / 50) --> math.floor
 }
 
 func Seqs (phase, seqs) {

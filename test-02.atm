@@ -158,7 +158,7 @@ do {
                 #{ 061450,  :r,  041 },
             }
         }
-        assert(speed(j.pub.speed) == 644)
+        assert(sum(j.pub.speed) == 705)
         emit :fall
 
         ;; SEQ 1
@@ -209,7 +209,7 @@ do {
                 #{ 107119,  :r,  033 },
             }
         }
-        assert(speed(j.pub.speed) == 910)
+        assert(sum(j.pub.speed) == 948)
         emit :fall
 
         ;; SEQ 2
@@ -339,7 +339,7 @@ do {
                 #{ 198862,  :r,  037 },
             }
         }
-        assert(speed(j.pub.speed) == 2286)
+        assert(sum(j.pub.speed) == 2344)
         emit :fall
 
         ;; SEQ 3
@@ -361,7 +361,7 @@ do {
                 #{ 330148,  :l,  055 },
             }
         }
-        assert(speed(j.pub.speed) == 2286)
+        assert(sum(j.pub.speed) == 2344)
 
         ;; POWER
 
@@ -458,6 +458,7 @@ do {
                 #{ 386009,  :r,  049 },
             }
         }
-        assert(speed(j.pub.power) == 2286)
+        print(sum(j.pub.speed))
+        assert(sum(j.pub.power) == 2286)
     }
 }
