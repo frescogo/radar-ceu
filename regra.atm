@@ -1,5 +1,23 @@
 val TIME = 3*60*1000    ;; 3-min total phase time
 
+func speed (seqs) {
+    var pts = 0
+    loop _,seq in seqs {
+        var a = seq[0]
+        loop i in (1, #seq) {
+            val b = seq[i]
+            val dt = (b.now - a.now)
+            val min = (a.vel, b.vel) --> math.min
+            val max = (a.vel, b.vel) --> math.max
+            if (dt <= 1000) && ((min*1.25) >= max) {
+                set pts = pts + b.vel
+                print(i, pts)
+            }
+            set a = b
+        }
+    }
+}
+
 func Seqs (seqs) {
     ;; Seqs
     var now = 0
@@ -12,15 +30,16 @@ func Seqs (seqs) {
         }
         var old = now
         emit [:global] (:go.time, now)
+
+        val seq = #{}
+        set seqs[+] = seq
+
+        val s0 = await :shot
+        set s0.now = now
+        set seq[+] = s0
+        emit [:global] (:go.shot, s0)
+
         watching :fall {
-            val seq = #{}
-            set seqs[+] = seq
-
-            val s0 = await :shot
-            set s0.now = now
-            set seq[+] = s0
-            emit [:global] (:go.shot, s0)
-
             par {
                 every _,dt in 'sdl.step' {
                     set now = now + dt
@@ -32,9 +51,12 @@ func Seqs (seqs) {
                     set s.now = now
                     set seq[+] = s
                     emit [:global] (:go.shot, s)
+    ;; TODO: emit (:go.valid, bool)
                 }
             }
         }
+    ;; TODO: dec time
+
         set now = old
         emit [:global] (:go.fall, i)
         emit [:global] (:go.time, now)
