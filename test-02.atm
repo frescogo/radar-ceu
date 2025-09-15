@@ -50,11 +50,16 @@ spawn {
                     assert(!s.valid)
                 }
             }
-            watching :go.seq, false, 2 {
-                await(:go.fall, 2)
-                error()
-            }
+            val _,_,t = await(:go.fall, 2)
+            assert(t == 176496)
+            await(:go.seq, false, 2)
         }
+
+print:xxx
+        await(:go.phase, false, :speed)
+print:yyy
+        await(:go.phase, true,  :power)
+print:zzz
     }
     print("GAME 2: ok")
 }
@@ -325,5 +330,6 @@ do {
             }
         }
         assert(speed(j.pub.speed) == 2286)
+        emit :fall
     }
 }
