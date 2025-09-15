@@ -7,10 +7,11 @@ func speed (seqs) {
         loop i,s in seq {
             if s.valid {
                 set pts = pts + s.vel
-                print(i, pts)
+                print(i, s.vel, pts)
             }
         }
     }
+    pts
 }
 
 func Seqs (seqs) {

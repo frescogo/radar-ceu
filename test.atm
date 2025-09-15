@@ -46,18 +46,37 @@ spawn {
         await(:go.game, true)
         await(:go.phase, true, :speed)
 
-        await(:go.seq, true, 0)
-        loop i in 63 {
-            val _,s = await(:go.shot)
-            if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
-                assert(s.valid)
-            } else {
-                assert(!s.valid)
+        ;; SEQ 0
+        do {
+            await(:go.seq, true, 0)
+            loop i in 63 {
+                val _,s = await(:go.shot)
+                if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
+                    assert(s.valid)
+                } else {
+                    assert(!s.valid)
+                }
             }
+            val _,_,t = await(:go.fall, 0)
+            assert(t == 49252)
+            await(:go.seq, false, 0)
         }
-        val _,_,t = await(:go.fall, 0)
-        assert(t == 49252)
-        await(:go.seq, false, 0)
+
+        ;; SEQ 1
+        do {
+            await(:go.seq, true, 1)
+            loop i in 43 {
+                val _,s = await(:go.shot)
+                if i ?> #{10,11,15,33,38,42} {
+                    assert(s.valid)
+                } else {
+                    assert(!s.valid)
+                }
+            }
+            val _,_,t = await(:go.fall, 1)
+            assert(t == 86669)
+            await(:go.seq, false, 1)
+        }
     }
     print("GAME 2: ok")
 }
@@ -115,7 +134,6 @@ func seq (t) {
         emit('sdl.step', dt)
         emit(:shot @{dir=v[1],vel=v[2]})
     }
-    emit :fall
 }
 
 do {
@@ -190,8 +208,9 @@ do {
                 #{ 060983,  :l,  072 },
                 #{ 061450,  :r,  041 },
             }
-            speed(j.pub.speed)
+            assert(speed(j.pub.speed) == 644)
         }
+        emit :fall
 
         ;; SEQ 1
         do {
@@ -240,8 +259,9 @@ do {
                 #{ 106501,  :l,  037 },
                 #{ 107119,  :r,  033 },
             }
-
+            assert(speed(j.pub.speed) == 910)
         }
+        emit :fall
     }
 }
 
