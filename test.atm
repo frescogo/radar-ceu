@@ -10,7 +10,7 @@ spawn {
 
         await(:go.seq, true, 0)
         val _,s = await(:go.shot)
-        assert((s.now==0) && (s.dir==:in) && (s.vel==40))
+        assert((s.now==0) && (s.dir==:inb) && (s.vel==40))
         val _,s = await(:go.shot)
         assert((s.now==500) && (s.dir==:out) && (s.vel==60))
         val _,t = await(:go.time)
@@ -22,7 +22,7 @@ spawn {
 
         await(:go.seq, true, 1)
         val _,s = await(:go.shot)
-        assert((s.now==500) && (s.dir==:in) && (s.vel==34))
+        assert((s.now==500) && (s.dir==:inb) && (s.vel==34))
         await(:go.seq, false, 1)
 
         await(:go.phase, false, :speed)
@@ -33,7 +33,7 @@ spawn {
             val _,so = await(:go.shot)
             assert((so.now==(i*500)) && (so.dir==:out) && (so.vel==50))
             val _,si = await(:go.shot)
-            assert((si.now==((i*500) + 250)) && (si.dir==:in) && (si.vel==50))
+            assert((si.now==((i*500) + 250)) && (si.dir==:inb) && (si.vel==50))
         }
         await(:go.seq, false, 0)
 
@@ -45,6 +45,14 @@ spawn {
     print("GAME 2: ??")
     do {
         await(:go.game, true)
+        await(:go.phase, true, :speed)
+
+        await(:go.seq, true, 0)
+        loop _ in 63 {
+            await(:go.shot)
+        }
+        await(:go.fall, 0)
+        await(:go.seq, false, 0)
     }
     print("GAME 2: ok")
 }
@@ -54,7 +62,7 @@ do {
     watching j {
         emit(:shot @{dir=:out,vel=31})
         emit('sdl.step', 100000)
-        emit(:shot @{dir=:in,vel=34})
+        emit(:shot @{dir=:inb,vel=34})
         emit('sdl.step', 100)
 
         ;; SPEED
@@ -62,7 +70,7 @@ do {
         ;; SEQ 0
         emit :serve
         emit('sdl.step', 500)
-        emit(:shot @{dir=:in,vel=40})
+        emit(:shot @{dir=:inb,vel=40})
         emit('sdl.step', 500)
         emit(:shot @{dir=:out,vel=60})
         emit('sdl.step', 500)
@@ -70,12 +78,12 @@ do {
 
         emit(:shot @{dir=:out,vel=31})
         emit('sdl.step', 100000)
-        emit(:shot @{dir=:in,vel=34})
+        emit(:shot @{dir=:inb,vel=34})
         emit('sdl.step', 100)
 
         ;; SEQ 1
         emit :serve
-        emit(:shot @{dir=:in,vel=34})
+        emit(:shot @{dir=:inb,vel=34})
         emit('sdl.step', (6*60*1000)/2)
         emit :fall
 
@@ -86,16 +94,96 @@ do {
         loop _ in 4 {
             emit(:shot @{dir=:out,vel=50})
             emit('sdl.step', 250)
-            emit(:shot @{dir=:in,vel=50})
+            emit(:shot @{dir=:inb,vel=50})
             emit('sdl.step', 250)
         }
         emit('sdl.step', (6*60*1000)/2)
     }
 }
 
+func seq (t) {
+    var now = t[0][0]
+    emit :serve
+    loop _,v in t {
+        val dt = v[0] - now
+        set now = v[0]
+        emit('sdl.step', dt)
+        emit(:shot @{dir=v[1],vel=v[2]})
+    }
+    emit :fall
+}
+
 do {
     pin j = spawn Game()
     watching j {
+        ;; SPEED
+
+        ;; SEQ 0
+        seq #{
+            #{ 024198,  :inb,  048 },
+            #{ 024948,  :out,  065 },
+            #{ 025382,  :inb,  050 },
+            #{ 026032,  :out,  065 },
+            #{ 026432,  :inb,  047 },
+            #{ 027150,  :out,  064 },
+            #{ 027633,  :inb,  036 },
+            #{ 028466,  :out,  076 },
+            #{ 028867,  :inb,  051 },
+            #{ 029499,  :out,  063 },
+            #{ 029916,  :inb,  051 },
+            #{ 030599,  :out,  073 },
+            #{ 030983,  :inb,  042 },
+            #{ 031799,  :out,  058 },
+            #{ 032133,  :inb,  051 },
+            #{ 032899,  :out,  074 },
+            #{ 033299,  :inb,  042 },
+            #{ 034067,  :out,  073 },
+            #{ 034399,  :inb,  059 },
+            #{ 035032,  :out,  063 },
+            #{ 035466,  :inb,  052 },
+            #{ 036166,  :out,  070 },
+            #{ 036549,  :inb,  056 },
+            #{ 037216,  :out,  063 },
+            #{ 037649,  :inb,  053 },
+            #{ 038282,  :out,  073 },
+            #{ 039650,  :out,  072 },
+            #{ 040083,  :inb,  035 },
+            #{ 040983,  :out,  035 },
+            #{ 041783,  :inb,  050 },
+            #{ 042466,  :out,  072 },
+            #{ 042899,  :inb,  051 },
+            #{ 043533,  :out,  034 },
+            #{ 044433,  :inb,  066 },
+            #{ 044899,  :out,  034 },
+            #{ 045833,  :inb,  061 },
+            #{ 046300,  :out,  037 },
+            #{ 047116,  :inb,  067 },
+            #{ 047583,  :out,  045 },
+            #{ 048184,  :inb,  070 },
+            #{ 048650,  :out,  047 },
+            #{ 049266,  :inb,  052 },
+            #{ 049866,  :out,  046 },
+            #{ 050549,  :inb,  072 },
+            #{ 050983,  :out,  043 },
+            #{ 051666,  :inb,  062 },
+            #{ 052134,  :out,  041 },
+            #{ 052850,  :inb,  069 },
+            #{ 053366,  :out,  043 },
+            #{ 053999,  :inb,  073 },
+            #{ 054483,  :out,  046 },
+            #{ 055033,  :inb,  077 },
+            #{ 055416,  :out,  044 },
+            #{ 056100,  :inb,  073 },
+            #{ 056533,  :out,  040 },
+            #{ 057300,  :inb,  075 },
+            #{ 057716,  :out,  039 },
+            #{ 058667,  :inb,  066 },
+            #{ 059166,  :out,  041 },
+            #{ 059833,  :inb,  070 },
+            #{ 060300,  :out,  041 },
+            #{ 060983,  :inb,  072 },
+            #{ 061450,  :out,  041 },
+        }
     }
 }
 
