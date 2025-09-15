@@ -70,6 +70,33 @@ spawn {
 
         await(:go.phase, false, :speed)
         await(:go.phase, true,  :power)
+
+        ;; SEQ 0
+        do {
+            await(:go.seq, true, 0)
+            loop i in 88 {
+                await(:go.shot)
+            }
+            val _,_,t = await(:go.fall, 0)
+            assert(t == 67228)
+            await(:go.seq, false, 0)
+        }
+
+        ;; SEQ 1
+        do {
+            await(:go.seq, true, 1)
+            loop i in 29 {
+                val _,s = await(:go.shot)
+                if i ?> #{0,7,8,10,23,24,25} {
+                    assert(!s.valid)
+                } else {
+                    assert(s.valid)
+                }
+            }
+            val _,_,t = await(:go.fall, 1)
+            assert(t == 95945)
+            await(:go.seq, false, 1)
+        }
     }
     print("GAME 2: ok")
 }
@@ -458,7 +485,44 @@ do {
                 #{ 386009,  :r,  049 },
             }
         }
-        print(sum(j.pub.speed))
-        assert(sum(j.pub.power) == 2286)
+        emit :fall
+        assert(sum(j.pub.power) == 5505)
+
+        ;; SEQ 1
+        do {
+            seq #{
+                #{ 424893,  :l,  045 },
+                #{ 425610,  :r,  072 },
+                #{ 426026,  :l,  049 },
+                #{ 426743,  :r,  070 },
+                #{ 427126,  :l,  049 },
+                #{ 427810,  :r,  070 },
+                #{ 428243,  :l,  045 },
+                #{ 429011,  :r,  052 },
+                #{ 429559,  :l,  051 },
+                #{ 430159,  :r,  064 },
+                #{ 430610,  :l,  054 },
+                #{ 431260,  :r,  074 },
+                #{ 431677,  :l,  051 },
+                #{ 432360,  :r,  070 },
+                #{ 432744,  :l,  053 },
+                #{ 433377,  :r,  069 },
+                #{ 433944,  :l,  046 },
+                #{ 434561,  :r,  081 },
+                #{ 434945,  :l,  052 },
+                #{ 435577,  :r,  077 },
+                #{ 435960,  :l,  059 },
+                #{ 436594,  :r,  076 },
+                #{ 437026,  :l,  057 },
+                #{ 437593,  :r,  067 },
+                #{ 439394,  :r,  044 },
+                #{ 439911,  :l,  040 },
+                #{ 440594,  :r,  077 },
+                #{ 441011,  :l,  053 },
+                #{ 441610,  :r,  073 },
+            }
+        }
+        emit :fall
+        assert(sum(j.pub.power) == 7312)
     }
 }
