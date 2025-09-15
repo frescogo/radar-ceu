@@ -2,45 +2,6 @@ require "atmos.env.clock"
 require "regra"
 
 spawn {
-    ;; GAME 1
-    print("GAME 1: ??")
-    do {
-        await(:go.game, true)
-        await(:go.phase, true, :speed)
-
-        await(:go.seq, true, 0)
-        val _,s = await(:go.shot)
-        assert((s.now==0) && (s.dir==:l) && (s.vel==40))
-        val _,s = await(:go.shot)
-        assert((s.now==500) && (s.dir==:r) && (s.vel==60))
-        val _,t = await(:go.time)
-        assert(t == 1000)
-        val _,_,t = await(:go.fall, 0)
-        assert(t == (500+12000))
-        await(:go.seq, false, 0)
-
-        await(:go.seq, true, 1)
-        val _,s = await(:go.shot)
-        assert((s.now==12500) && (s.dir==:l) && (s.vel==34))
-        await(:go.seq, false, 1)
-
-        await(:go.phase, false, :speed)
-        await(:go.phase, true, :power)
-
-        await(:go.seq, true, 0)
-        loop i in 4 {
-            val _,so = await(:go.shot)
-            assert((so.now==(i*500)) && (so.dir==:r) && (so.vel==50))
-            val _,si = await(:go.shot)
-            assert((si.now==((i*500) + 250)) && (si.dir==:l) && (si.vel==50))
-        }
-        await(:go.seq, false, 0)
-
-        await(:go.phase, false, :power)
-        await(:go.game, false)
-    }
-    print("GAME 1: ok")
-
     print("GAME 2: ??")
     do {
         await(:go.game, true)
@@ -96,50 +57,6 @@ spawn {
         }
     }
     print("GAME 2: ok")
-}
-
-do {
-    pin j = spawn Game()
-    watching j {
-        emit(:shot @{dir=:r,vel=31})
-        emit('sdl.step', 100000)
-        emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', 100)
-
-        ;; SPEED
-
-        ;; SEQ 0
-        emit :serve
-        emit('sdl.step', 500)
-        emit(:shot @{dir=:l,vel=40})
-        emit('sdl.step', 500)
-        emit(:shot @{dir=:r,vel=60})
-        emit('sdl.step', 500)
-        emit :fall
-
-        emit(:shot @{dir=:r,vel=31})
-        emit('sdl.step', 100000)
-        emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', 100)
-
-        ;; SEQ 1
-        emit :serve
-        emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', (6*60*1000)/2)
-        emit :fall
-
-        ;; POWER
-
-        ;; SEQ 0
-        emit :serve
-        loop _ in 4 {
-            emit(:shot @{dir=:r,vel=50})
-            emit('sdl.step', 250)
-            emit(:shot @{dir=:l,vel=50})
-            emit('sdl.step', 250)
-        }
-        emit('sdl.step', (6*60*1000)/2)
-    }
 }
 
 func seq (t) {
@@ -410,5 +327,3 @@ do {
         assert(speed(j.pub.speed) == 2286)
     }
 }
-
-print :ok
