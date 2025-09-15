@@ -7,14 +7,14 @@ func speed (seqs) {
         loop i,s in seq {
             if s.valid {
                 set pts = pts + s.vel
-                print(i, s.vel, pts)
+                ;;print(i, s.vel, pts)
             }
         }
     }
     pts
 }
 
-func Seqs (seqs) {
+func Seqs (phase, seqs) {
     ;; Seqs
     var now = 0
     loop i {
@@ -50,7 +50,10 @@ func Seqs (seqs) {
                         dt = (s.now - s0.now)
                         min = (s0.vel, s.vel) --> math.min
                         max = (s0.vel, s.vel) --> math.max
-                        ok = (dt <= 1000) && ((min*1.25) >= max)
+                        ok = (dt <= 1000) && match phase {
+                            :speed => ((min*1.25) >= max)
+                            :power => ((min*1.25) <= max)
+                        }
                     }
                     set seq[+] = s
                     emit [:global] (:go.shot, s)
@@ -77,14 +80,14 @@ func Game () {
         ;; Phase :speed
         emit [:global] (:go.phase, true, :speed)
         watching \(e,now){ (e==:go.time) && (now>=TIME)} {
-            await Seqs(seqs.speed)
+            await Seqs(:speed, seqs.speed)
         }
         emit [:global] (:go.phase, false, :speed)
 
         ;; Phase :power
         emit [:global] (:go.phase, true, :power)
         watching \(e,now){ (e==:go.time) && (now>=TIME)} {
-            await Seqs(seqs.power)
+            await Seqs(:power, seqs.power)
         }
         emit [:global] (:go.phase, false, :power)
     }
