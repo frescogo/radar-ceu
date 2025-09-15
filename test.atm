@@ -17,12 +17,12 @@ spawn {
         assert(t == 1000)
         await(:go.fall, 0)
         val _,t = await(:go.time)
-        assert(t == 500)
+        assert(t == (500+12000))
         await(:go.seq, false, 0)
 
         await(:go.seq, true, 1)
         val _,s = await(:go.shot)
-        assert((s.now==500) && (s.dir==:inb) && (s.vel==34))
+        assert((s.now==12500) && (s.dir==:inb) && (s.vel==34))
         await(:go.seq, false, 1)
 
         await(:go.phase, false, :speed)

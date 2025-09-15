@@ -1,19 +1,14 @@
 val TIME = 3*60*1000    ;; 3-min total phase time
+val FALL = 12*1000      ;; 12-sec fall time penalty
 
 func speed (seqs) {
     var pts = 0
     loop _,seq in seqs {
-        var a = seq[0]
-        loop i in (1, #seq) {
-            val b = seq[i]
-            val dt = (b.now - a.now)
-            val min = (a.vel, b.vel) --> math.min
-            val max = (a.vel, b.vel) --> math.max
-            if (dt <= 1000) && ((min*1.25) >= max) {
-                set pts = pts + b.vel
+        loop i,s in seq {
+            if s.valid {
+                set pts = pts + s.vel
                 print(i, pts)
             }
-            set a = b
         }
     }
 }
@@ -34,8 +29,9 @@ func Seqs (seqs) {
         val seq = #{}
         set seqs[+] = seq
 
-        val s0 = await :shot
+        var s0 = await :shot
         set s0.now = now
+        set s0.valid = false
         set seq[+] = s0
         emit [:global] (:go.shot, s0)
 
@@ -49,15 +45,21 @@ func Seqs (seqs) {
                 every s in :shot {
                     set old = now
                     set s.now = now
+                    set s.valid = ok where {
+                        dt = (s.now - s0.now)
+                        min = (s0.vel, s.vel) --> math.min
+                        max = (s0.vel, s.vel) --> math.max
+                        ok = (dt <= 1000) && ((min*1.25) >= max)
+                    }
                     set seq[+] = s
                     emit [:global] (:go.shot, s)
-    ;; TODO: emit (:go.valid, bool)
+                    set s0 = s
                 }
             }
         }
     ;; TODO: dec time
 
-        set now = old
+        set now = old + FALL
         emit [:global] (:go.fall, i)
         emit [:global] (:go.time, now)
     }
