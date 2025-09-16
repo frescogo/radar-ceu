@@ -10,6 +10,7 @@ func sum (seqs) {
                 ;;print(i, s.vel, (s.vel*s.vel)/50, pts)
             }
         }
+        ;;print(_,pts/50)
     }
     (pts / 50) --> math.floor
 }
