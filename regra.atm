@@ -4,14 +4,26 @@ val TIME = 3*60*1000    ;; 3-min total phase time
 val FALL = 12*1000      ;; 12-sec fall time penalty
 
 func sum (seqs) {
-    val pts = S.from(seqs)
+    val l,r = S.from(seqs)
         ::map    \{ S.from(it) }
         ::xseq()
         ::filter \{ it.valid }
+        ::tee()
+    val ll = l
+        ::filter \{ it.dir == :l }
         ::map    \{ it.vel * it.vel }
         ::sum()
         ::to()
-    (pts / 50) --> math.floor
+    val rr = r
+        ::filter \{ it.dir == :r }
+        ::map    \{ it.vel * it.vel }
+        ::sum()
+        ::to()
+    val max = math.max(ll,rr)
+    val min = math.min(ll,rr)
+    ;;print(max, min*1.25, min)
+    val tot = min + math.min(min*1.25, max)
+    (tot / 50) --> math.floor
 }
 
 func Seqs (phase, seqs) {
