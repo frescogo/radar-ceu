@@ -29,6 +29,7 @@ func Seqs (phase, seqs) {
         defer {
             set seq[=].valid = false
             emit [:global] (:go.seq, false, i)
+            emit [:global] (:go.time, now)
         }
         var old = now
         emit [:global] (:go.time, now)
@@ -64,7 +65,6 @@ func Seqs (phase, seqs) {
                 }
             }
         }
-
         set now = old + FALL
         emit [:global] (:go.fall, i, now)
     }

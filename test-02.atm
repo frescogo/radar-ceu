@@ -148,6 +148,26 @@ spawn {
             assert(t == 162380)
             await(:go.seq, false, 4)
         }
+
+        ;; SEQ 5
+        do {
+            await(:go.seq, true, 5)
+            loop i in 22 {
+                val _,s = await(:go.shot)
+                if i ?> #{0,1,20,22} {
+                    assert(!s.valid)
+                } else {
+                    ;;xprint(i, s)
+                    assert(s.valid)
+                }
+            }
+            val _,_,t = await(:go.fall, 5)
+            assert(t == 188315)
+            await(:go.seq, false, 5)
+        }
+
+        await(:go.phase, false, :power)
+        await(:go.game, false)
     }
     print("GAME 2: ok")
 }
@@ -658,5 +678,37 @@ do {
         emit :fall
         ;;print(sum(j.pub.power))
         assert(sum(j.pub.power) == 9855)
+
+        ;; SEQ 5
+        do {
+            seq #{
+                #{ 550757,  :l,  062 },     ;; 0
+                #{ 551759,  :r,  034 },     ;; 1
+                #{ 552092,  :l,  067 },
+                #{ 552641,  :r,  041 },
+                #{ 553392,  :l,  066 },
+                #{ 554225,  :r,  038 },
+                #{ 554609,  :l,  063 },
+                #{ 555092,  :r,  042 },
+                #{ 555776,  :l,  070 },
+                #{ 556242,  :r,  042 },
+                #{ 556891,  :l,  070 },
+                #{ 557357,  :r,  040 },
+                #{ 558124,  :l,  073 },
+                #{ 558507,  :r,  041 },
+                #{ 559192,  :l,  069 },
+                #{ 559708,  :r,  044 },
+                #{ 560341,  :l,  073 },
+                #{ 560758,  :r,  041 },
+                #{ 561492,  :l,  055 },
+                #{ 562142,  :r,  039 },
+                #{ 562926,  :l,  044 },     ;; 20
+                #{ 563576,  :r,  074 },
+                #{ 564692,  :l,  033 },     ;; 22
+            }
+        }
+        emit :fall
+        ;;print(sum(j.pub.power))
+        assert(sum(j.pub.power) == 11087)
     }
 }
