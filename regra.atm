@@ -21,15 +21,17 @@ func Seqs (phase, seqs) {
     loop i {
         ;; Seq
         await :serve
+
+        val seq = #{}
+        set seqs[+] = seq
+
         emit [:global] (:go.seq, true, i)
         defer {
+            set seq[=].valid = false
             emit [:global] (:go.seq, false, i)
         }
         var old = now
         emit [:global] (:go.time, now)
-
-        val seq = #{}
-        set seqs[+] = seq
 
         var s0 = await :shot
         set s0.now = now

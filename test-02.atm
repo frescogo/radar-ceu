@@ -42,7 +42,7 @@ spawn {
         ;; SEQ 2
         do {
             await(:go.seq, true, 2)
-            loop i in 43 {
+            loop i in 43 {  ;; TODO: no tests 44->122
                 val _,s = await(:go.shot)
                 if i ?> #{10,11,13,26,47,48,54,55,69,74,75,76,83,84,86,87,89,90,102,103,111,112,113,114,117,118} {
                     assert(s.valid)
@@ -270,8 +270,8 @@ do {
                 #{ 107119,  :r,  033 },
             }
         }
-        assert(sum(j.pub.speed) == 948)
         emit :fall
+        assert(sum(j.pub.speed) == 926)
 
         ;; SEQ 2
         do {
@@ -400,8 +400,8 @@ do {
                 #{ 198862,  :r,  037 },
             }
         }
-        assert(sum(j.pub.speed) == 2344)
         emit :fall
+        assert(sum(j.pub.speed) == 2322)
 
         ;; SEQ 3
         do {
@@ -422,7 +422,7 @@ do {
                 #{ 330148,  :l,  055 },
             }
         }
-        assert(sum(j.pub.speed) == 2344)
+        assert(sum(j.pub.speed) == 2322)
 
         ;; POWER
 
@@ -557,7 +557,7 @@ do {
             }
         }
         emit :fall
-        assert(sum(j.pub.power) == 7312)
+        assert(sum(j.pub.power) == 7205)
 
         ;; SEQ 2
         do {
@@ -600,7 +600,7 @@ do {
         }
         emit :fall
         ;;print(sum(j.pub.power))
-        assert(sum(j.pub.power) == 8988)
+        assert(sum(j.pub.power) == 8858)
 
         ;; SEQ 3
         do {
@@ -622,6 +622,6 @@ do {
         }
         emit :fall
         ;;print(sum(j.pub.power))
-        assert(sum(j.pub.power) == 9769)
+        assert(sum(j.pub.power) == 9530)
     }
 }
