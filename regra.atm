@@ -1,17 +1,16 @@
+val S = require "atmos.lang.streams"
+
 val TIME = 3*60*1000    ;; 3-min total phase time
 val FALL = 12*1000      ;; 12-sec fall time penalty
 
 func sum (seqs) {
-    var pts = 0
-    loop _,seq in seqs {
-        loop i,s in seq {
-            if s.valid {
-                set pts = pts + (s.vel*s.vel)
-                ;;print(i, s.vel, (s.vel*s.vel)/50, pts)
-            }
-        }
-        ;;print(_,pts/50)
-    }
+    val pts = S.from(seqs)
+        ::map    \{ S.from(it) }
+        ::xseq()
+        ::filter \{ it.valid }
+        ::map    \{ it.vel * it.vel }
+        ::sum()
+        ::to()
     (pts / 50) --> math.floor
 }
 
