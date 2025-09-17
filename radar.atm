@@ -1,6 +1,9 @@
 val G = require "global"
 
-func Radar (dev) {
+func Radar (dev, pos) {
+    ;; dev : serial device  : /dev/ttyACM0, /dev/ttyS1, COM3
+    ;; pos : radar position : :l, :r
+
     ;; ~40-50 reads/sec (20-25 ms/read)
 
     val f = io.open(dev,'r') --> assert
@@ -49,8 +52,15 @@ func Radar (dev) {
             (num == nil)    => {}   ;; read error
             (dir == nil)    => {}   ;; read error
             else => {
+                val jog = ifs {
+                    (pos==:l) && (dir==:out) => :l
+                    (pos==:l) && (dir==:inb) => :r
+                    (pos==:r) && (dir==:out) => :r
+                    (pos==:r) && (dir==:inb) => :l
+                    else => error "impossible case"
+                }
                 val vel = (num + 5) / 10 --> math.floor
-                emit [:global] :radar.no @{dir=dir, vel=vel}
+                emit [:global] :radar.no @{jog=jog, vel=vel}
             }
         }
     }
@@ -59,7 +69,7 @@ func Radar (dev) {
 func Filter () {
     var v0 = await :radar.no
 
-    var dir = v0.dir
+    var jog = v0.jog
     var min = v0.vel
     var max = v0.vel
 
@@ -70,22 +80,22 @@ func Filter () {
                 set min = math.min(min, v.vel)
                 set max = math.max(max, v.vel)
                 val ok = ifs {
-                    (v.dir != dir)     => false
+                    (v.jog != jog)     => false
                     ((min*1.25) < max) => false
                     else               => true
                 }
                 if !ok {
-                    set dir = v.dir
+                    set jog = v.jog
                     set min = v.vel
                     set max = v.vel
                     escape :no
                 }
             }
-            emit [:global] :radar.ok @{dir=dir,vel=max}
+            emit [:global] :radar.ok @{jog=jog,vel=max}
             await @.250
             do {
                 val v = await :radar.no
-                set dir = v.dir
+                set jog = v.jog
                 set min = v.vel
                 set max = v.vel
             }
