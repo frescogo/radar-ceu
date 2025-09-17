@@ -18,9 +18,6 @@ val devs = #{
 
 pin radars = tasks()
 
-xprint(S.from(#{})::table()::to())
-error'ok'
-
 par {
     every _,v,dev in :radar.on {
         xprint(dev,v)
@@ -31,11 +28,8 @@ par {
     }
 } with {
     every @1 {
-        val ons = S.from(#{} ++ radars)::map \{it.pub.dev}::table()::to()
-xprint('ons', ons)
+        val ons = S.from(#{} ++ radars)::map \{it.pub.dev}::table()::to() || #{}
         loop _,dev in devs {
-print(_, dev)
-print(dev, dev!>ons)
             if dev !> ons {
                 catch true {
                     spawn [radars] Radar(dev)
