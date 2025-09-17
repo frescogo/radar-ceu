@@ -63,11 +63,12 @@ func Radar (dev) {
             (dir == nil)    => {}   ;; read error
             else => {
                 val jog = ifs {
+                    (num == 0)                   => :u  ;; undefined
                     (pub.pos==:l) && (dir==:out) => :l
                     (pub.pos==:l) && (dir==:inb) => :r
                     (pub.pos==:r) && (dir==:out) => :r
                     (pub.pos==:r) && (dir==:inb) => :l
-                    else => :u  ;; undefined
+                    else                         => :u
                 }
                 val vel = (num + 5) / 10 --> math.floor
                 emit [:global] :radar.raw @{jog=jog, vel=vel}
@@ -77,7 +78,7 @@ func Radar (dev) {
 }
 
 func Filter () {
-    var v0 = await :radar.raw
+    val v0 = await \e{ (e.tag==:radar.raw) && (e.vel!=0) }
 
     var jog = v0.jog
     var min = v0.vel
@@ -104,7 +105,7 @@ func Filter () {
             emit [:global] :radar.ok @{jog=jog,vel=max}
             await @.250
             do {
-                val v = await :radar.raw
+                val v = await \e{ (e.tag==:radar.raw) && (e.vel!=0) }
                 set jog = v.jog
                 set min = v.vel
                 set max = v.vel

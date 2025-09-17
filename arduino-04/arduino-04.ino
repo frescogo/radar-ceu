@@ -17,12 +17,16 @@ void setup () {
 
 void loop () {
   //delay(500);
+  msg[8]  = (random(0,2) == 0) ? 0b01000010 : 0b01000000;
   if (random(0,2) == 0) {
+    msg[10] = '0';
+    msg[11] = '0';
+  } else {
     msg[8]  = (random(0,2) == 0) ? 0b01000010 : 0b01000000;
     msg[10] = random('3', '8');
     msg[11] = random('0', '9');
-    for (int i=0; i<23; i++) {
-      Serial.write(msg[i]);
-    }
+  }
+  for (int i=0; i<23; i++) {
+    Serial.write(msg[i]);
   }
 }
