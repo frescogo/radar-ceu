@@ -163,7 +163,7 @@ func Filter () {
                     escape :no
                 }
             }
-            emit [:global] :radar.ok
+            emit [:global] :radar.ok @{dir=dir,vel=max}
             await @.250
             do {
                 val v = await :radar.no
