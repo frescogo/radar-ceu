@@ -70,14 +70,14 @@ func Radar (dev) {
                     else => :u  ;; undefined
                 }
                 val vel = (num + 5) / 10 --> math.floor
-                emit [:global] :radar.no @{jog=jog, vel=vel}
+                emit [:global] :radar.raw @{jog=jog, vel=vel}
             }
         }
     }
 }
 
 func Filter () {
-    var v0 = await :radar.no
+    var v0 = await :radar.raw
 
     var jog = v0.jog
     var min = v0.vel
@@ -86,7 +86,7 @@ func Filter () {
     loop {
         do :no {
             loop i in G.reps-1 {
-                val v = await :radar.no
+                val v = await :radar.raw
                 set min = math.min(min, v.vel)
                 set max = math.max(max, v.vel)
                 val ok = ifs {
@@ -104,7 +104,7 @@ func Filter () {
             emit [:global] :radar.ok @{jog=jog,vel=max}
             await @.250
             do {
-                val v = await :radar.no
+                val v = await :radar.raw
                 set jog = v.jog
                 set min = v.vel
                 set max = v.vel
