@@ -1,5 +1,5 @@
 require "atmos.env.clock"
-require "regra"
+require "game"
 
 spawn {
     print("GAME 2: ??")
