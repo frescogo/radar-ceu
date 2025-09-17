@@ -38,7 +38,12 @@ par {
         }
     }
 } with {
-    every v in :radar.raw {
-        xprint(v)
+    var n = 0
+    watching @10 {
+        every v in :radar.raw {
+            set n = n + 1
+            xprint(v)
+        }
     }
+    print(:n, n)
 }
