@@ -1,13 +1,23 @@
 val G = require "global"
 
-func Radar (dev, pos) {
-    ;; dev : serial device  : /dev/ttyACM0, /dev/ttyS1, COM3
-    ;; pos : radar position : :l, :r
+val X = string.char(0x88)   ;; radar format sentinel
+
+func Radar (dev) {
+    ;; dev : serial device  : [/dev/ttyACM0, /dev/ttyUSB1, COM3, ...]
+
+    set pub = @{
+        pos = nil,  ;; :l | :r
+    }
 
     ;; ~40-50 reads/sec (20-25 ms/read)
 
     val f = io.open(dev,'r') --> assert
-    val X = string.char(0x88)
+;;throw vs assert
+;;emit
+    defer {
+;;emit
+        f::close()
+    }
 
     loop {
         ;; wait (c == 0x88)
@@ -53,11 +63,11 @@ func Radar (dev, pos) {
             (dir == nil)    => {}   ;; read error
             else => {
                 val jog = ifs {
-                    (pos==:l) && (dir==:out) => :l
-                    (pos==:l) && (dir==:inb) => :r
-                    (pos==:r) && (dir==:out) => :r
-                    (pos==:r) && (dir==:inb) => :l
-                    else => error "impossible case"
+                    (pub.pos==:l) && (dir==:out) => :l
+                    (pub.pos==:l) && (dir==:inb) => :r
+                    (pub.pos==:r) && (dir==:out) => :r
+                    (pub.pos==:r) && (dir==:inb) => :l
+                    else => :u  ;; undefined
                 }
                 val vel = (num + 5) / 10 --> math.floor
                 emit [:global] :radar.no @{jog=jog, vel=vel}
