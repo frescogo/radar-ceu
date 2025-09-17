@@ -1,10 +1,50 @@
+val S = require "atmos.streams"
+
 require "atmos.env.sdl"
 require "game"
 require "radar"
 
-pin r = spawn Radar("/dev/ttyACM0")
-set r.pub.pos = :l
+spawn {
+    every :sdl.step {
+        ;;print "-=-=-"
+    }
+}
 
-every v in :radar.raw {
-    xprint(v)
+val devs = #{
+    "/dev/ttyACM0",
+    "/dev/ttyACM1",
+    "/dev/ttyACM2",
+}
+
+pin radars = tasks()
+
+xprint(S.from(#{})::table()::to())
+error'ok'
+
+par {
+    every _,v,dev in :radar.on {
+        xprint(dev,v)
+    }
+} with {
+    every _,err in :radar.err {
+        xprint(err)
+    }
+} with {
+    every @1 {
+        val ons = S.from(#{} ++ radars)::map \{it.pub.dev}::table()::to()
+xprint('ons', ons)
+        loop _,dev in devs {
+print(_, dev)
+print(dev, dev!>ons)
+            if dev !> ons {
+                catch true {
+                    spawn [radars] Radar(dev)
+                }
+            }
+        }
+    }
+} with {
+    every v in :radar.raw {
+        xprint(v)
+    }
 }

@@ -6,21 +6,23 @@ val X = string.char(0x88)   ;; radar format sentinel
 func Radar (dev) {
     val ok, err = pcall(aux, dev)
     assert(!ok)
-    set err.tag = string.gsub(err.code, '_', '.')
-    throw(err)
+    emit [:global] (:radar.err, err)
 }
 
 func aux (dev) {
     ;; dev : serial device  : [/dev/ttyACM0, /dev/ttyUSB1, COM3, ...]
 
     set pub = @{
-        pos = nil,  ;; :l | :r
+        dev = dev,
+        pos = :u,   ;; :l | :r
     }
 
     ;; ~40-50 reads/sec (20-25 ms/read)
 
-    val f = Serial("/dev/ttyACM0", 9600)
+    val f = Serial(dev, 9600)
+    emit [:global] (:radar.on, true, dev)
     defer {
+        emit [:global] (:radar.on, false, dev)
         f::close()
     }
 
@@ -69,6 +71,7 @@ func aux (dev) {
             else => {
                 val jog = ifs {
                     (num == 0)                   => :u  ;; undefined
+                    (pub.pos == :u)              => :u
                     (pub.pos==:l) && (dir==:out) => :l
                     (pub.pos==:l) && (dir==:inb) => :r
                     (pub.pos==:r) && (dir==:out) => :r
