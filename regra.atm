@@ -1,8 +1,5 @@
 val S = require "atmos.lang.streams"
-
-val TIME = 3*60*1000    ;; 3-min total phase time
-val FALL = 12*1000      ;; 12-sec fall time penalty
-val REPS = 4
+val G = require "global"
 
 func sum (seqs) {
     val l,r = S.from(seqs)
@@ -77,133 +74,10 @@ func Seqs (phase, seqs) {
                 }
             }
         }
-        set now = old + FALL
+        set now = old + G.fall
         emit [:global] (:go.fall, i, now)
     }
 }
-
-func Radar (dev) {
-    ;; ~40-50 reads/sec (20-25 ms/read)
-
-    val f = io.open(dev,'r') --> assert
-    val X = string.char(0x88)
-
-    loop {
-        ;; wait (c == 0x88)
-        do :ok {
-            loop {
-                await :sdl.step
-                loop {
-                    val c = f::read(1)
-                    until (c == nil)
-                    if c == X {
-                        escape :ok
-                    }
-                }
-            }
-        }
-
-        ;; wait (#s == 23)
-        val s = #{}
-        do :ok {
-            loop {
-                await :sdl.step
-                loop {
-                    val c = f::read(1)
-                    until (c == nil)
-                    set s[+] = c
-                    if #s == 23 {
-                        escape :ok
-                    }
-                }
-            }
-        }
-
-        val num = tonumber(""++s[8]++s[9]++s[10]++s[11])
-        val byt = s[7] --> string.byte
-        val dir = ifs {
-            (byt == 66) => :inb
-            (byt == 64) => :out
-            else        => nil      ;; read error
-        }
-
-        ifs {
-            (num == nil)    => {}   ;; read error
-            (dir == nil)    => {}   ;; read error
-            else => {
-                val vel = (num + 5) / 10 --> math.floor
-                emit [:global] :radar.no @{dir=dir, vel=vel}
-            }
-        }
-    }
-}
-
-func Filter () {
-    var v0 = await :radar.no
-
-    var dir = v0.dir
-    var min = v0.vel
-    var max = v0.vel
-
-    loop {
-        do :no {
-            loop i in REPS-1 {
-                val v = await :radar.no
-                set min = math.min(min, v.vel)
-                set max = math.max(max, v.vel)
-                val ok = ifs {
-                    (v.dir != dir)     => false
-                    ((min*1.25) < max) => false
-                    else               => true
-                }
-                if !ok {
-                    set dir = v.dir
-                    set min = v.vel
-                    set max = v.vel
-                    escape :no
-                }
-            }
-            emit [:global] :radar.ok @{dir=dir,vel=max}
-            await @.250
-            do {
-                val v = await :radar.no
-                set dir = v.dir
-                set min = v.vel
-                set max = v.vel
-            }
-        }
-    }
-}
-
-;;;
-
-    // duvida se mesma dir em menos de 700ms
-    if (dir!=LAST[_DIR] && now<LAST[_NOW]+RADAR_IGUAL) {
-        return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
-    }
-    if (dir==LAST[_DIR] && now<LAST[_NOW]+RADAR_OPOSI) {
-        return (vel == 0) ? 0 : -1; // retorna 0 pra contar no timeout de queda
-    }
-
-    if (vel!=0 || LAST[_VEL]!=0) {
-        String msg2 = ">>> [" + nf(now/100,4) + "] " + sdir + " " + nf(vel,3) + " <<<";
-        RADAR_OUT.println(msg2);
-        RADAR_OUT.flush();
-        println(msg2);
-    }
-
-    LAST[_VEL] = vel;
-    if (vel != 0) {
-        LAST[_DIR] = 1-dir; // negate current dir (only accept opposite next)
-        LAST[_NOW] = now;
-    }
-
-    BUF[I][_DIR] = -1;  // restarts buffer
-
-    vel = (vel + 5) / 10;  // round
-    return (dir == 1) ? -vel : vel;
-}
-;;;
 
 func Game () {
     val seqs = @{
@@ -217,14 +91,14 @@ func Game () {
     do {
         ;; Phase :speed
         emit [:global] (:go.phase, true, :speed)
-        watching \(e,now){ (e==:go.time) && (now>=TIME)} {
+        watching \(e,now){ (e==:go.time) && (now>=G.time)} {
             await Seqs(:speed, seqs.speed)
         }
         emit [:global] (:go.phase, false, :speed)
 
         ;; Phase :power
         emit [:global] (:go.phase, true, :power)
-        watching \(e,now){ (e==:go.time) && (now>=TIME)} {
+        watching \(e,now){ (e==:go.time) && (now>=G.time)} {
             await Seqs(:power, seqs.power)
         }
         emit [:global] (:go.phase, false, :power)
