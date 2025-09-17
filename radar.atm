@@ -1,8 +1,16 @@
 val G = require "global"
+val Serial = require("periphery").Serial
 
 val X = string.char(0x88)   ;; radar format sentinel
 
 func Radar (dev) {
+    val ok, err = pcall(aux, dev)
+    assert(!ok)
+    set err.tag = string.gsub(err.code, '_', '.')
+    throw(err)
+}
+
+func aux (dev) {
     ;; dev : serial device  : [/dev/ttyACM0, /dev/ttyUSB1, COM3, ...]
 
     set pub = @{
@@ -11,11 +19,8 @@ func Radar (dev) {
 
     ;; ~40-50 reads/sec (20-25 ms/read)
 
-    val f = io.open(dev,'r') --> assert
-;;throw vs assert
-;;emit
+    val f = Serial("/dev/ttyACM0", 9600)
     defer {
-;;emit
         f::close()
     }
 
@@ -25,8 +30,8 @@ func Radar (dev) {
             loop {
                 await :sdl.step
                 loop {
-                    val c = f::read(1)
-                    until (c == nil)
+                    val c = f::read(1,0)
+                    until (c == '')
                     if c == X {
                         escape :ok
                     }
@@ -40,8 +45,8 @@ func Radar (dev) {
             loop {
                 await :sdl.step
                 loop {
-                    val c = f::read(1)
-                    until (c == nil)
+                    val c = f::read(1,0)
+                    until (c == '')
                     set s[+] = c
                     if #s == 23 {
                         escape :ok
