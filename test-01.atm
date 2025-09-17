@@ -45,30 +45,30 @@ do {
     pin j = spawn Game()
     watching j {
         emit(:shot @{dir=:r,vel=31})
-        emit('sdl.step', 100000)
+        emit(:sdl.step, 100000)
         emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', 100)
+        emit(:sdl.step, 100)
 
         ;; SPEED
 
         ;; SEQ 0
         emit :serve
-        emit('sdl.step', 500)
+        emit(:sdl.step, 500)
         emit(:shot @{dir=:l,vel=40})
-        emit('sdl.step', 500)
+        emit(:sdl.step, 500)
         emit(:shot @{dir=:r,vel=60})
-        emit('sdl.step', 500)
+        emit(:sdl.step, 500)
         emit :fall
 
         emit(:shot @{dir=:r,vel=31})
-        emit('sdl.step', 100000)
+        emit(:sdl.step, 100000)
         emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', 100)
+        emit(:sdl.step, 100)
 
         ;; SEQ 1
         emit :serve
         emit(:shot @{dir=:l,vel=34})
-        emit('sdl.step', (6*60*1000)/2)
+        emit(:sdl.step, (6*60*1000)/2)
         emit :fall
 
         ;; POWER
@@ -77,10 +77,10 @@ do {
         emit :serve
         loop _ in 4 {
             emit(:shot @{dir=:r,vel=50})
-            emit('sdl.step', 250)
+            emit(:sdl.step, 250)
             emit(:shot @{dir=:l,vel=50})
-            emit('sdl.step', 250)
+            emit(:sdl.step, 250)
         }
-        emit('sdl.step', (6*60*1000)/2)
+        emit(:sdl.step, (6*60*1000)/2)
     }
 }
