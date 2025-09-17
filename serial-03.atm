@@ -1,0 +1,43 @@
+require "atmos.env.sdl"
+
+;; calculate how fast
+;; 20/s
+
+val Serial = require('periphery').Serial
+val f = Serial("/dev/ttyACM0", 9600)
+
+val X = string.char(0x88)
+
+val old = math.floor(os.clock() * 1000)
+var n = 0
+
+loop {
+    await :sdl.step
+    val now = math.floor(os.clock() * 1000)
+    until ((now-old) > 5000)
+    set n = n + 1
+
+    var c = f::read(1)
+    loop {
+        until (c == X)
+        set c = f::read(1)
+    }
+
+    var s = ""
+    loop {
+        until (string.len(s) == 23)
+        val c = f::read(1, 0)
+        if c != '' {
+            set s = s ++ c
+        }
+    }
+
+    val byt = string.byte(string.sub(s,8,8))
+    val num = math.floor((tonumber(string.sub(s,9,12))+5) / 10)
+    val dir = ((byt == 66) && 'inb') || 'out'
+    print(dir, num)
+}
+
+print(n)
+
+f::close()
