@@ -28,7 +28,7 @@ par {
     }
 } with {
     every @1 {
-        val ons = S.from(#{} ++ radars)::map \{it.pub.dev}::table()::to() || #{}
+        val ons = S.from(#{} ++ radars)::map \{it.pub.dev}::table()::to()
         loop _,dev in devs {
             if dev !> ons {
                 catch true {
