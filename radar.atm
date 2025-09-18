@@ -42,14 +42,14 @@ func aux (dev) {
         }
 
         ;; wait (#s == 23)
-        val s = #{}
+        var s = ""
         do :ok {
             loop {
                 await :sdl.step
                 loop {
                     val c = f::read(1,0)
                     until (c == '')
-                    set s[+] = c
+                    set s = s ++ c
                     if #s == 23 {
                         escape :ok
                     }
@@ -57,8 +57,8 @@ func aux (dev) {
             }
         }
 
-        val num = tonumber(""++s[8]++s[9]++s[10]++s[11])
-        val byt = s[7] --> string.byte
+        val num = tonumber(string.sub(s,9,12))
+        val byt = string.sub(s,8) --> string.byte
         val dir = ifs {
             (byt == 66) => :inb
             (byt == 64) => :out
