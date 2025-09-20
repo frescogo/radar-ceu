@@ -1,52 +1,53 @@
 require "atmos.env.clock"
 require "game"
 
-spawn {
-    print("GAME 1: ??")
-    do {
-        await(:go.game, true)
-        await(:go.phase, true, :speed)
+pin j = spawn Game()
 
-        await(:go.seq, true, 0)
-        val _,s = await(:go.shot)
-        assert((s.now==0) && (s.jog==:l) && (s.vel==40))
-        val _,s = await(:go.shot)
-        assert((s.now==500) && (s.jog==:r) && (s.vel==60))
-        val _,t = await(:go.time)
-        assert(t == 1000)
-        val _,_,t = await(:go.fall, 0)
-        assert(t == (500+12000))
-        await(:go.seq, false, 0)
+watching j {
+    par {
+        print("GAME 1: ??")
+        do {
+            await(:go.game, true)
+            await(:go.phase, true, :speed)
 
-        await(:go.seq, true, 1)
-        val _,s = await(:go.shot)
-        assert((s.now==12500) && (s.jog==:l) && (s.vel==34))
-        await(:go.seq, false, 1)
+            await(:go.seq, true, 0)
+            val s = await(:out.shot)
+            assert((s.now==0) && (s.jog==:l) && (s.vel==40))
+            val s = await(:out.shot)
+            assert((s.now==500) && (s.jog==:r) && (s.vel==60))
+            val _,t = await(:go.time)
+            assert(t == 1000)
+            val _,_,t = await(:go.fall, 0)
+            assert(t == (500+12000))
+            await(:go.seq, false, 0)
 
-        await(:go.phase, false, :speed)
-        await(:go.phase, true, :power)
+            await(:go.seq, true, 1)
+            val s = await(:out.shot)
+            assert((s.now==12500) && (s.jog==:l) && (s.vel==34))
+            await(:go.seq, false, 1)
 
-        await(:go.seq, true, 0)
-        loop i in 4 {
-            val _,so = await(:go.shot)
-            assert((so.now==(i*500)) && (so.jog==:r) && (so.vel==50))
-            val _,si = await(:go.shot)
-            assert((si.now==((i*500) + 250)) && (si.jog==:l) && (si.vel==50))
+            await(:go.phase, false, :speed)
+            await(:go.phase, true, :power)
+
+            await(:go.seq, true, 0)
+            loop i in 4 {
+                val so = await(:out.shot)
+                assert((so.now==(i*500)) && (so.jog==:r) && (so.vel==50))
+                val si = await(:out.shot)
+                assert((si.now==((i*500) + 250)) && (si.jog==:l) && (si.vel==50))
+            }
+            await(:go.seq, false, 0)
+
+            await(:go.phase, false, :power)
+            await(:go.game, false)
         }
-        await(:go.seq, false, 0)
+        print("GAME 1: ok")
+    } with {
+        emit :out.start
 
-        await(:go.phase, false, :power)
-        await(:go.game, false)
-    }
-    print("GAME 1: ok")
-}
-
-do {
-    pin j = spawn Game()
-    watching j {
-        emit(:shot @{jog=:r,vel=31})
+        emit(:out.shot @{jog=:r,vel=31})
         emit(:sdl.step, 100000)
-        emit(:shot @{jog=:l,vel=34})
+        emit(:out.shot @{jog=:l,vel=34})
         emit(:sdl.step, 100)
 
         ;; SPEED
@@ -54,31 +55,31 @@ do {
         ;; SEQ 0
         emit :serve
         emit(:sdl.step, 500)
-        emit(:shot @{jog=:l,vel=40})
+        emit(:out.shot @{jog=:l,vel=40})
         emit(:sdl.step, 500)
-        emit(:shot @{jog=:r,vel=60})
+        emit(:out.shot @{jog=:r,vel=60})
         emit(:sdl.step, 500)
-        emit :fall
+        emit :out.fall
 
-        emit(:shot @{jog=:r,vel=31})
+        emit(:out.shot @{jog=:r,vel=31})
         emit(:sdl.step, 100000)
-        emit(:shot @{jog=:l,vel=34})
+        emit(:out.shot @{jog=:l,vel=34})
         emit(:sdl.step, 100)
 
         ;; SEQ 1
         emit :serve
-        emit(:shot @{jog=:l,vel=34})
+        emit(:out.shot @{jog=:l,vel=34})
         emit(:sdl.step, (6*60*1000)/2)
-        emit :fall
+        emit :out.fall
 
         ;; POWER
 
         ;; SEQ 0
         emit :serve
         loop _ in 4 {
-            emit(:shot @{jog=:r,vel=50})
+            emit(:out.shot @{jog=:r,vel=50})
             emit(:sdl.step, 250)
-            emit(:shot @{jog=:l,vel=50})
+            emit(:out.shot @{jog=:l,vel=50})
             emit(:sdl.step, 250)
         }
         emit(:sdl.step, (6*60*1000)/2)

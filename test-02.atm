@@ -1,177 +1,6 @@
 require "atmos.env.clock"
 require "game"
 
-spawn {
-    print("GAME 2: ??")
-    do {
-        await(:go.game, true)
-        await(:go.phase, true, :speed)
-
-        ;; SEQ 0
-        do {
-            await(:go.seq, true, 0)
-            loop i in 63 {
-                val _,s = await(:go.shot)
-                if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
-                    assert(s.valid)
-                } else {
-                    assert(!s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 0)
-            assert(t == 49252)
-            await(:go.seq, false, 0)
-        }
-
-        ;; SEQ 1
-        do {
-            await(:go.seq, true, 1)
-            loop i in 43 {
-                val _,s = await(:go.shot)
-                if i ?> #{10,11,15,33,38,42} {
-                    assert(s.valid)
-                } else {
-                    assert(!s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 1)
-            assert(t == 86669)
-            await(:go.seq, false, 1)
-        }
-
-        ;; SEQ 2
-        do {
-            await(:go.seq, true, 2)
-            loop i in 43 {  ;; TODO: no tests 44=>122
-                val _,s = await(:go.shot)
-                if i ?> #{10,11,13,26,47,48,54,55,69,74,75,76,83,84,86,87,89,90,102,103,111,112,113,114,117,118} {
-                    assert(s.valid)
-                } else {
-                    assert(!s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 2)
-            assert(t == 176496)
-            await(:go.seq, false, 2)
-        }
-
-        ;; SEQ 3
-        do {
-            await(:go.seq, true, 3)
-            loop i in 7 {
-                val _,s = await(:go.shot)
-                assert(!s.valid)
-            }
-            watching :go.seq, false, 3 {
-                await(:go.fall, 3)
-                error()
-            }
-        }
-
-        await(:go.phase, false, :speed)
-        await(:go.phase, true,  :power)
-
-        ;; SEQ 0
-        do {
-            await(:go.seq, true, 0)
-            loop i in 88 {
-                await(:go.shot)
-            }
-            val _,_,t = await(:go.fall, 0)
-            assert(t == 67228)
-            await(:go.seq, false, 0)
-        }
-
-        ;; SEQ 1
-        do {
-            await(:go.seq, true, 1)
-            loop i in 29 {
-                val _,s = await(:go.shot)
-                if i ?> #{0,7,8,10,23,24,25} {
-                    assert(!s.valid)
-                } else {
-                    assert(s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 1)
-            assert(t == 95945)
-            await(:go.seq, false, 1)
-        }
-
-        ;; SEQ 2
-        do {
-            await(:go.seq, true, 2)
-            loop i in 34 {
-                val _,s = await(:go.shot)
-                if i ?> #{0,11,12,13,16,23,24,27,28,31} {
-                    assert(!s.valid)
-                } else {
-                    ;;xprint(s.vel*s.vel)
-                    assert(s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 2)
-            assert(t == 127328)
-            await(:go.seq, false, 2)
-        }
-
-        ;; SEQ 3
-        do {
-            await(:go.seq, true, 3)
-            loop i in 13 {
-                val _,s = await(:go.shot)
-                if i ?> #{0,2,3} {
-                    assert(!s.valid)
-                } else {
-                    ;;xprint(s.vel*s.vel)
-                    assert(s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 3)
-            assert(t == 146162)
-            await(:go.seq, false, 3)
-        }
-
-        ;; SEQ 4
-        do {
-            await(:go.seq, true, 4)
-            loop i in 9 {
-                val _,s = await(:go.shot)
-                if i ?> #{1,2,3,4} {
-                    ;;xprint(s.vel*s.vel)
-                    assert(s.valid)
-                } else {
-                    assert(!s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 4)
-            assert(t == 162380)
-            await(:go.seq, false, 4)
-        }
-
-        ;; SEQ 5
-        do {
-            await(:go.seq, true, 5)
-            loop i in 22 {
-                val _,s = await(:go.shot)
-                if i ?> #{0,1,20,22} {
-                    assert(!s.valid)
-                } else {
-                    ;;xprint(i, s)
-                    assert(s.valid)
-                }
-            }
-            val _,_,t = await(:go.fall, 5)
-            assert(t == 188315)
-            await(:go.seq, false, 5)
-        }
-
-        await(:go.phase, false, :power)
-        await(:go.game, false)
-    }
-    print("GAME 2: ok")
-}
-
 func seq (t) {
     var now = t[0][0]
     emit :serve
@@ -183,9 +12,187 @@ func seq (t) {
     }
 }
 
-do {
-    pin j = spawn Game()
-    watching j {
+pin j = spawn Game()
+;;;
+spawn Points()
+spawn {
+    every _,pts in :go.pts.speed {
+        xprint(pts)
+    }
+}
+;;;
+
+watching j {
+    par {
+        print("GAME 2: ??")
+        do {
+            await(:go.game, true)
+            await(:go.phase, true, :speed)
+
+            ;; SEQ 0
+            do {
+                await(:go.seq, true, 0)
+                loop i in 63 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
+                        assert(s.valid)
+                    } else {
+                        assert(!s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 0)
+                assert(t == 49252)
+                await(:go.seq, false, 0)
+            }
+
+            ;; SEQ 1
+            do {
+                await(:go.seq, true, 1)
+                loop i in 43 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{10,11,15,33,38,42} {
+                        assert(s.valid)
+                    } else {
+                        assert(!s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 1)
+                assert(t == 86669)
+                await(:go.seq, false, 1)
+            }
+
+            ;; SEQ 2
+            do {
+                await(:go.seq, true, 2)
+                loop i in 43 {  ;; TODO: no tests 44=>122
+                    val _,s = await(:go.shot)
+                    if i ?> #{10,11,13,26,47,48,54,55,69,74,75,76,83,84,86,87,89,90,102,103,111,112,113,114,117,118} {
+                        assert(s.valid)
+                    } else {
+                        assert(!s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 2)
+                assert(t == 176496)
+                await(:go.seq, false, 2)
+            }
+
+            ;; SEQ 3
+            do {
+                await(:go.seq, true, 3)
+                loop i in 7 {
+                    val _,s = await(:go.shot)
+                    assert(!s.valid)
+                }
+                watching :go.seq, false, 3 {
+                    await(:go.fall, 3)
+                    error()
+                }
+            }
+
+            await(:go.phase, false, :speed)
+            await(:go.phase, true,  :power)
+
+            ;; SEQ 0
+            do {
+                await(:go.seq, true, 0)
+                loop i in 88 {
+                    await(:go.shot)
+                }
+                val _,_,t = await(:go.fall, 0)
+                assert(t == 67228)
+                await(:go.seq, false, 0)
+            }
+
+            ;; SEQ 1
+            do {
+                await(:go.seq, true, 1)
+                loop i in 29 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{0,7,8,10,23,24,25} {
+                        assert(!s.valid)
+                    } else {
+                        assert(s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 1)
+                assert(t == 95945)
+                await(:go.seq, false, 1)
+            }
+
+            ;; SEQ 2
+            do {
+                await(:go.seq, true, 2)
+                loop i in 34 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{0,11,12,13,16,23,24,27,28,31} {
+                        assert(!s.valid)
+                    } else {
+                        ;;xprint(s.vel*s.vel)
+                        assert(s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 2)
+                assert(t == 127328)
+                await(:go.seq, false, 2)
+            }
+
+            ;; SEQ 3
+            do {
+                await(:go.seq, true, 3)
+                loop i in 13 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{0,2,3} {
+                        assert(!s.valid)
+                    } else {
+                        ;;xprint(s.vel*s.vel)
+                        assert(s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 3)
+                assert(t == 146162)
+                await(:go.seq, false, 3)
+            }
+
+            ;; SEQ 4
+            do {
+                await(:go.seq, true, 4)
+                loop i in 9 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{1,2,3,4} {
+                        ;;xprint(s.vel*s.vel)
+                        assert(s.valid)
+                    } else {
+                        assert(!s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 4)
+                assert(t == 162380)
+                await(:go.seq, false, 4)
+            }
+
+            ;; SEQ 5
+            do {
+                await(:go.seq, true, 5)
+                loop i in 22 {
+                    val _,s = await(:go.shot)
+                    if i ?> #{0,1,20,22} {
+                        assert(!s.valid)
+                    } else {
+                        ;;xprint(i, s)
+                        assert(s.valid)
+                    }
+                }
+                val _,_,t = await(:go.fall, 5)
+                assert(t == 188315)
+                await(:go.seq, false, 5)
+            }
+
+            await(:go.phase, false, :power)
+            await(:go.game, false)
+        }
+        print("GAME 2: ok")
+    } with {
         ;; SPEED
 
         ;; SEQ 0
