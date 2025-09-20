@@ -53,7 +53,7 @@ watching j {
         ;; SPEED
 
         ;; SEQ 0
-        emit :serve
+        emit :out.serve
         emit(:sdl.step, 500)
         emit(:out.shot @{jog=:l,vel=40})
         emit(:sdl.step, 500)
@@ -67,7 +67,7 @@ watching j {
         emit(:sdl.step, 100)
 
         ;; SEQ 1
-        emit :serve
+        emit :out.serve
         emit(:out.shot @{jog=:l,vel=34})
         emit(:sdl.step, (6*60*1000)/2)
         emit :out.fall
@@ -75,7 +75,7 @@ watching j {
         ;; POWER
 
         ;; SEQ 0
-        emit :serve
+        emit :out.serve
         loop _ in 4 {
             emit(:out.shot @{jog=:r,vel=50})
             emit(:sdl.step, 250)

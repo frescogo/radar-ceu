@@ -3,12 +3,12 @@ require "game"
 
 func seq (t) {
     var now = t[0][0]
-    emit :serve
+    emit :out.serve
     loop _,v in t {
         val dt = v[0] - now
         set now = v[0]
         emit(:sdl.step, dt)
-        emit(:shot @{jog=v[1],vel=v[2]})
+        emit(:out.shot @{jog=v[1],vel=v[2]})
     }
 }
 
@@ -33,7 +33,7 @@ watching j {
             do {
                 await(:go.seq, true, 0)
                 loop i in 63 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{9,10,14,18,19,20,22,23,24,28,41,42} {
                         assert(s.valid)
                     } else {
@@ -49,7 +49,7 @@ watching j {
             do {
                 await(:go.seq, true, 1)
                 loop i in 43 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{10,11,15,33,38,42} {
                         assert(s.valid)
                     } else {
@@ -65,7 +65,7 @@ watching j {
             do {
                 await(:go.seq, true, 2)
                 loop i in 43 {  ;; TODO: no tests 44=>122
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{10,11,13,26,47,48,54,55,69,74,75,76,83,84,86,87,89,90,102,103,111,112,113,114,117,118} {
                         assert(s.valid)
                     } else {
@@ -81,7 +81,7 @@ watching j {
             do {
                 await(:go.seq, true, 3)
                 loop i in 7 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     assert(!s.valid)
                 }
                 watching :go.seq, false, 3 {
@@ -97,7 +97,7 @@ watching j {
             do {
                 await(:go.seq, true, 0)
                 loop i in 88 {
-                    await(:go.shot)
+                    await(:out.shot)
                 }
                 val _,_,t = await(:go.fall, 0)
                 assert(t == 67228)
@@ -108,7 +108,7 @@ watching j {
             do {
                 await(:go.seq, true, 1)
                 loop i in 29 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{0,7,8,10,23,24,25} {
                         assert(!s.valid)
                     } else {
@@ -124,7 +124,7 @@ watching j {
             do {
                 await(:go.seq, true, 2)
                 loop i in 34 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{0,11,12,13,16,23,24,27,28,31} {
                         assert(!s.valid)
                     } else {
@@ -141,7 +141,7 @@ watching j {
             do {
                 await(:go.seq, true, 3)
                 loop i in 13 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{0,2,3} {
                         assert(!s.valid)
                     } else {
@@ -158,7 +158,7 @@ watching j {
             do {
                 await(:go.seq, true, 4)
                 loop i in 9 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{1,2,3,4} {
                         ;;xprint(s.vel*s.vel)
                         assert(s.valid)
@@ -175,7 +175,7 @@ watching j {
             do {
                 await(:go.seq, true, 5)
                 loop i in 22 {
-                    val _,s = await(:go.shot)
+                    val s = await(:out.shot)
                     if i ?> #{0,1,20,22} {
                         assert(!s.valid)
                     } else {
@@ -193,6 +193,7 @@ watching j {
         }
         print("GAME 2: ok")
     } with {
+        emit :out.start
         ;; SPEED
 
         ;; SEQ 0
@@ -264,7 +265,7 @@ watching j {
             }
         }
         assert(sum(j.pub.speed) == 686)
-        emit :fall
+        emit :out.fall
 
         ;; SEQ 1
         do {
@@ -314,7 +315,7 @@ watching j {
                 #{ 107119,  :r,  033 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.speed) == 836)
 
         ;; SEQ 2
@@ -444,7 +445,7 @@ watching j {
                 #{ 198862,  :r,  037 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.speed) == 2322)
 
         ;; SEQ 3
@@ -563,7 +564,7 @@ watching j {
                 #{ 386009,  :r,  049 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.power) == 5505)
 
         ;; SEQ 1
@@ -600,7 +601,7 @@ watching j {
                 #{ 441610,  :r,  073 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.power) == 7205)
 
         ;; SEQ 2
@@ -642,7 +643,7 @@ watching j {
                 #{ 484945,  :r,  034 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.power) == 8638)
 
         ;; SEQ 3
@@ -663,7 +664,7 @@ watching j {
                 #{ 517425,  :r,  074 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.power) == 9211)
 
         ;; SEQ 4
@@ -680,7 +681,7 @@ watching j {
                 #{ 537192,  :r,  061 },
             }
         }
-        emit :fall
+        emit :out.fall
         assert(sum(j.pub.power) == 9469)
 
         ;; SEQ 5
@@ -711,7 +712,7 @@ watching j {
                 #{ 564692,  :l,  033 },     ;; 22
             }
         }
-        emit :fall
+        emit :out.fall
         ;;print(sum(j.pub.power))
         assert(sum(j.pub.power) == 11087)
     }

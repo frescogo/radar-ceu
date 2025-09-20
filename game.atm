@@ -29,7 +29,7 @@ func Seqs (phase, seqs) {
     var now = 0
     loop i {
         ;; Seq
-        await :serve
+        await :out.serve
 
         val seq = #{}
         set seqs[+] = seq
