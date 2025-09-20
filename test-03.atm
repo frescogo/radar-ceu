@@ -7,6 +7,6 @@ require "radar"
 spawn Probe(@1)
 spawn Filter()
 
-every v in :radar.ok {
+every v in :shot {
     xprint(v)
 }

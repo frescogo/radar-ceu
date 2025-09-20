@@ -179,7 +179,7 @@ func seq (t) {
         val dt = v[0] - now
         set now = v[0]
         emit(:sdl.step, dt)
-        emit(:shot @{dir=v[1],vel=v[2]})
+        emit(:shot @{jog=v[1],vel=v[2]})
     }
 }
 

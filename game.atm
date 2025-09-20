@@ -8,12 +8,12 @@ func sum (seqs) {
         ::filter \{ it.valid }
         ::tee()
     val ll = l
-        ::filter \{ it.dir == :l }
+        ::filter \{ it.jog == :l }
         ::map    \{ it.vel * it.vel }
         ::sum()
         ::to()
     val rr = r
-        ::filter \{ it.dir == :r }
+        ::filter \{ it.jog == :r }
         ::map    \{ it.vel * it.vel }
         ::sum()
         ::to()

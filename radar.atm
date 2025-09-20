@@ -108,7 +108,7 @@ func aux (dev) {
                 }
                 if jog {
                     val vel = (num + 5) / 10 --> math.floor
-                    val tag = if (vel == 0) => :radar.raw.zer => :radar.raw.pos
+                    val tag = if (vel == 0) => :radar.zer => :radar.pos
                     emit [:global] @{tag=tag, jog=jog, vel=vel}
                 }
             }
@@ -117,7 +117,7 @@ func aux (dev) {
 }
 
 func Filter () {
-    val v0 = await :radar.raw.pos
+    val v0 = await :radar.pos
 
     var cur = @{
         jog = v0.jog,
@@ -129,7 +129,7 @@ func Filter () {
         do :nxt {
             watching :radaw.raw.zer {
                 loop i in G.reps-1 {
-                    val v = await :radar.raw.pos
+                    val v = await :radar.pos
                     set cur.min = math.min(cur.min, v.vel)
                     set cur.max = math.max(cur.max, v.vel)
                     val ok = ifs {
@@ -146,11 +146,11 @@ func Filter () {
                         escape :nxt
                     }
                 }
-                emit [:global] :radar.ok @{jog=cur.jog,vel=cur.max}
+                emit [:global] :shot @{jog=cur.jog,vel=cur.max}
                 await @.250
             }
             do {
-                val v = await :radar.raw.pos
+                val v = await :radar.pos
                 set cur = @{
                     jog = v.jog,
                     min = v.vel,
