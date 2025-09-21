@@ -146,7 +146,7 @@ func Filter () {
                         escape :nxt
                     }
                 }
-                emit [:global] :shot @{jog=cur.jog,vel=cur.max}
+                emit [:global] :out.shot @{jog=cur.jog,vel=cur.max}
                 await @.250
             }
             do {

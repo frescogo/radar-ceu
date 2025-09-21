@@ -1,6 +1,27 @@
 val S = require "atmos.lang.streams"
 val G = require "global"
 
+;;;
+func Points (seqs) {
+    await (:go.game, true)
+    await (:go.phase, true, :speed)
+    watching :go.phase, false, :speed {
+        val l,r = S.fr_awaits(:out.shot)
+            ::filter \{ it.valid }
+            ::tee()
+        par {
+            l::emitter(:global, :go.pts.speed.l)::to()
+        } with {
+            r::emitter(:global, :go.pts.speed.r)::to()
+        }
+    }
+    await (:go.phase, true, :power)
+    watching :go.phase, false, :power {
+    }
+    await (:go.game, true)
+}
+;;;
+
 func sum (seqs) {
     val l,r = S.from(seqs)
         ::map    \{ S.from(it) }

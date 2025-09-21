@@ -13,11 +13,12 @@ func seq (t) {
 }
 
 pin j = spawn Game()
+
 ;;;
 spawn Points()
 spawn {
-    every _,pts in :go.pts.speed {
-        xprint(pts)
+    every e,pts in :go.pts {
+        xprint(e,pts)
     }
 }
 ;;;
