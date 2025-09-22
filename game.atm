@@ -1,7 +1,20 @@
 val S = require "atmos.lang.streams"
 val G = require "global"
 
-func Points (seqs) {
+;;;
+                                /--> :l
+                  /--> speed --|
+                 |              \--> :r
+shot --> valid --|                         /--> :power
+                 |              /--> :l --|
+                 |             |           \--> :ambis
+                  \--> power --|
+                               |           /--> :power
+                                \--> :r --|
+                                           \--> :ambis
+;;;
+
+func ss_points () {
     val ss = @{
         speed = @{
             l = nil,
@@ -20,38 +33,23 @@ func Points (seqs) {
     S.fr_awaits(:out.shot)
         ::filter \{ it.valid }
         ::map    \{ it.vel * it.vel }
-        ::tee() --> \(x,y) {
-            x::filter { it.phase == :speed }::tee() --> \(x,y) {
-                set ss.speed.l = x::filter \{ it.jog == :l }
-                set ss.speed.r = x::filter \{ it.jog == :r }
+        ::tee() --> \(speed,power) {
+            speed::filter \{ it.phase == :speed }::tee() --> \(l,r) {
+                set ss.speed.l = l::filter \{ it.jog == :l }
+                set ss.speed.r = r::filter \{ it.jog == :r }
             }
-            y::filter { it.phase == :power }::tee() --> \(x,y) {
+            power::filter \{ it.phase == :power }::tee() --> \(l,r) {
+                l::filter \{ it.jog == :l }::tee() --> \(raw,ambis) {
+                    set ss.power.l = raw
+                    set ss.ambis.l = ambis::sort \(x,y){x>y}::take(25)
+                }
+                r::filter \{ it.jog == :r }::tee() --> \(raw,ambis) {
+                    set ss.power.r = raw
+                    set ss.ambis.r = ambis::sort \(x,y){x>y}::take(25)
+                }
             }
         }
     ss
-}
-
-func sum (seqs) {
-    val l,r = S.from(seqs)
-        ::map    \{ S.from(it) }
-        ::xseq()
-        ::filter \{ it.valid }
-        ::tee()
-    val ll = l
-        ::filter \{ it.jog == :l }
-        ::map    \{ it.vel * it.vel }
-        ::sum()
-        ::to()
-    val rr = r
-        ::filter \{ it.jog == :r }
-        ::map    \{ it.vel * it.vel }
-        ::sum()
-        ::to()
-    val max = math.max(ll,rr)
-    val min = math.min(ll,rr)
-    ;;print(max, min*1.25, min)
-    val tot = min + math.min(min*1.25, max)
-    (tot / 50) --> math.floor
 }
 
 func Seqs (phase, seqs) {

@@ -1,6 +1,12 @@
 require "atmos.env.clock"
 require "game"
 
+;; Tests the game phases:
+;;  - Mocks:
+;;      - sdl: step
+;;      - out: start, shot, fall, serve
+;;  - GO: game, phase, seq, time, fall
+
 pin j = spawn Game()
 
 watching j {
