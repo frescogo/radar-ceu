@@ -14,42 +14,29 @@ shot --> valid --|                         /--> :power
                                            \--> :ambis
 ;;;
 
-func ss_points () {
-    val ss = @{
-        speed = @{
-            l = nil,
-            r = nil,
-        },
-        power = @{
-            l = nil,
-            r = nil,
-        },
-        ambis = @{
-            l = nil,
-            r = nil,
-        },
-        total = nil,
-    }
+spawn {
+    ;; TODO: total
     S.fr_awaits(:out.shot)
         ::filter \{ it.valid }
         ::map    \{ it.vel * it.vel }
-        ::tee() --> \(speed,power) {
-            speed::filter \{ it.phase == :speed }::tee() --> \(l,r) {
-                set ss.speed.l = l::filter \{ it.jog == :l }
-                set ss.speed.r = r::filter \{ it.jog == :r }
-            }
-            power::filter \{ it.phase == :power }::tee() --> \(l,r) {
-                l::filter \{ it.jog == :l }::tee() --> \(raw,ambis) {
-                    set ss.power.l = raw
-                    set ss.ambis.l = ambis::sort \(x,y){x>y}::take(25)
-                }
-                r::filter \{ it.jog == :r }::tee() --> \(raw,ambis) {
-                    set ss.power.r = raw
-                    set ss.ambis.r = ambis::sort \(x,y){x>y}::take(25)
-                }
-            }
-        }
-    ss
+        ::tee (
+            ;; speed
+            \{ it::filter \{ it.phase == :speed }::tee (
+                \{ it::filter \{ it.jog == :l }::emitter(:pts.speed.l) },
+                \{ it::filter \{ it.jog == :r }::emitter(:pts.speed.r) },
+            )},
+            ;; power, ambis
+            \{ it::filter \{ it.phase == :power }::tee (
+                \{ it::filter \{ it.jog == :l }::tee (
+                    \{ it::emitter(:pts.power.l) },
+                    \{ it::table()::sort \(x,y){x>y}::take(25)::emitter(:pts.ambis.l) },
+                )},
+                \{ it::filter \{ it.jog == :r }::tee (
+                    \{ it::emitter(:pts.power.r) },
+                    \{ it::table()::sort \(x,y){x>y}::take(25)::emitter(:pts.ambis.r) },
+                )},
+            )},
+        )
 }
 
 func Seqs (phase, seqs) {

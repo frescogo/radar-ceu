@@ -1,0 +1,8 @@
+require "atmos.env.clock"
+require "game"
+
+val pts = ss_points()
+
+var x = every x in :pts.ambis.r {
+    
+}
