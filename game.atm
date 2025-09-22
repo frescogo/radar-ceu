@@ -14,29 +14,43 @@ shot --> valid --|                         /--> :power
                                            \--> :ambis
 ;;;
 
-spawn {
-    ;; TODO: total
-    S.fr_awaits(:out.shot)
-        ::filter \{ it.valid }
-        ::map    \{ it.vel * it.vel }
-        ::tee (
-            ;; speed
-            \{ it::filter \{ it.phase == :speed }::tee (
-                \{ it::filter \{ it.jog == :l }::emitter(:pts.speed.l) },
-                \{ it::filter \{ it.jog == :r }::emitter(:pts.speed.r) },
-            )},
-            ;; power, ambis
-            \{ it::filter \{ it.phase == :power }::tee (
-                \{ it::filter \{ it.jog == :l }::tee (
-                    \{ it::emitter(:pts.power.l) },
-                    \{ it::table()::sort \(x,y){x>y}::take(25)::emitter(:pts.ambis.l) },
+set points = @{
+    speed = @{
+        l = sl,
+        r = sr,
+    },
+    power = @{
+        l = plx,
+        r = prx,
+    },
+    ambis = @{
+        l = pla,
+        r = pra,
+    },
+    total = nil, ;; TODO: total
+} where {
+    sl,sr,plx,prx,pla,pra =
+        S.fr_awaits(:out.shot)
+            ::filter \{ it.valid }
+            ::map    \{ it.vel * it.vel }
+            ::tee (
+                ;; speed
+                \{ it::filter \{ it.phase == :speed }::tee (
+                    \{ it::filter \{ it.jog == :l } },
+                    \{ it::filter \{ it.jog == :r } },
                 )},
-                \{ it::filter \{ it.jog == :r }::tee (
-                    \{ it::emitter(:pts.power.r) },
-                    \{ it::table()::sort \(x,y){x>y}::take(25)::emitter(:pts.ambis.r) },
+                ;; power, ambis
+                \{ it::filter \{ it.phase == :power }::tee (
+                    \{ it::filter \{ it.jog == :l }::tee (
+                        \{ it::emitter(:pts.power.l) },
+                        \{ it::table()::sort \(x,y){x>y}::take(25) },
+                    )},
+                    \{ it::filter \{ it.jog == :r }::tee (
+                        \{ it::emitter(:pts.power.r) },
+                        \{ it::table()::sort \(x,y){x>y}::take(25) },
+                    )},
                 )},
-            )},
-        )
+            )
 }
 
 func Seqs (phase, seqs) {
