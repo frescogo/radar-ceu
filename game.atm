@@ -1,4 +1,4 @@
-val S = require "atmos.lang.streams"
+val S = require "atmos.streams"
 val G = require "global"
 
 ;;;
@@ -30,7 +30,7 @@ set points = @{
     total = nil, ;; TODO: total
 } where {
     sl,sr,plx,prx,pla,pra =
-        S.fr_awaits(:out.shot)
+        S.fr_await(:out.shot)
             ::filter \{ it.valid }
             ::map    \{ it.vel * it.vel }
             ::tee (
@@ -43,11 +43,11 @@ set points = @{
                 \{ it::filter \{ it.phase == :power }::tee (
                     \{ it::filter \{ it.jog == :l }::tee (
                         \{ it::emitter(:pts.power.l) },
-                        \{ it::table()::sort \(x,y){x>y}::take(25) },
+                        \{ it::table()::tap \{table.sort(it,\(x,y){x>y})}::take(25) },
                     )},
                     \{ it::filter \{ it.jog == :r }::tee (
                         \{ it::emitter(:pts.power.r) },
-                        \{ it::table()::sort \(x,y){x>y}::take(25) },
+                        \{ it::table()::tap \{table.sort(it,\(x,y){x>y})}::take(25) },
                     )},
                 )},
             )
@@ -60,7 +60,7 @@ func Seqs (phase, seqs) {
         ;; Seq
         await :out.serve
 
-        val seq = #{}
+        val seq = @{}
         set seqs[+] = seq
 
         emit [:global] (:go.seq, true, i)
@@ -112,8 +112,8 @@ func Seqs (phase, seqs) {
 
 func Game () {
     val seqs = @{
-        speed = #{},
-        power = #{},
+        speed = @{},
+        power = @{},
     }
     set pub = seqs
 
