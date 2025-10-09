@@ -1,0 +1,55 @@
+val S = require "atmos.streams"
+
+;;;
+                                /--> :l
+                  /--> speed --|
+                 |              \--> :r
+shot --> valid --|                         /--> :power
+                 |              /--> :l --|
+                 |             |           \--> :ambis
+                  \--> power --|
+                               |           /--> :power
+                                \--> :r --|
+                                           \--> :ambis
+;;;
+
+set points = @{
+    speed = @{
+        l = sl,
+        r = sr,
+    },
+    power = @{
+        l = plx,
+        r = prx,
+    },
+    ambis = @{
+        l = pla,
+        r = pra,
+    },
+    total = nil, ;; TODO: total
+} where {
+    sl,sr,plx,prx,pla,pra =
+        S.fr_await(:out.shot)
+            ::filter \{ it.valid }
+            ::map    \{ it.vel * it.vel }
+            ::tee (
+                ;; speed
+                \{ it::filter \{ it.phase == :speed }::tee (
+                    \{ it::filter \{ it.jog == :l } },
+                    \{ it::filter \{ it.jog == :r } },
+                )},
+                ;; power, ambis
+                \{ it::filter \{ it.phase == :power }::tee (
+                    \{ it::filter \{ it.jog == :l }::tee (
+                        \{ it::emitter(:pts.power.l) },
+                        \{ it::table()::tap \{table.sort(it,\(x,y){x>y})}::take(25) },
+                    )},
+                    \{ it::filter \{ it.jog == :r }::tee (
+                        \{ it::emitter(:pts.power.r) },
+                        \{ it::table()::tap \{table.sort(it,\(x,y){x>y})}::take(25) },
+                    )},
+                )},
+            )
+}
+
+
