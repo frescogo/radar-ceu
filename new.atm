@@ -1,22 +1,24 @@
 val G = require "global"
 
 func Seq (phase, t0, i, seq) {
-    await :out.shot
-    var now = 0
     watching :out.fall {
-        every _,dt in :clock {
-            set now = now + dt
-            emit [:global] (:ins.time, now)
+        var s0 = await :out.shot            ;; pode cair antes do 1o golpe
+        set s0.now   = 0
+        set s0.phase = phase
+        set s0.valid = false
+
+        var now = 0
+        par {
+            every _,dt in :clock {
+                set now = now + dt
+                emit [:global] (:ins.time, now)
+            }
+        } with {
         }
     }
 ;;;
-    emit [:global] (:ins.seq, true, i)
-    defer {
-        emit [:global] (:ins.seq, false, i)
-    }
-
     watching :out.fall {
-        var s0 = await :out.shot        ;; pode cair antes do 1o golpe
+        var s0 = await :out.shot
         set s0.now   = t0
         set s0.phase = phase
         set s0.valid = false
@@ -68,6 +70,13 @@ test {
         spawn {
             print "Seq - 1 - go"
             await(:ins.seq, true, 1)
+            val s0 = await(:out.shot)
+            do {
+                assert(s0.now == 0)
+                assert(s0.phase == :speed)
+                assert(s0.vel == 99)
+                assert(s0.valid == false)
+            }
             await(:ins.seq, false, 1)
             print "Seq - 1 - ok"
             print "Seq - 2 - go"
@@ -78,7 +87,7 @@ test {
         }
         loop _ in 2 {
             emit :out.serve
-            emit :out.shot
+            emit(:out.shot @{jog=:u,vel=99})
             emit :out.fall
         }
     }
@@ -146,7 +155,7 @@ test {
 
         assert(phase == :speed)
         emit :out.serve
-        emit :out.shot
+        emit(:out.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*1)
         assert(phase == :speed)
         emit(:clock, 1000*60*1)
@@ -155,7 +164,7 @@ test {
 
         assert(phase == :power)
         emit :out.serve
-        emit :out.shot
+        emit(:out.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*3)
 
         assert(phase == nil)
