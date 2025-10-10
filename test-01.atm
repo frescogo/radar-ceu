@@ -52,30 +52,30 @@ watching j {
         emit :out.start
 
         emit(:out.shot @{jog=:r,vel=31})
-        emit(:sdl.step, 100000)
+        emit(:clock, 100000)
         emit(:out.shot @{jog=:l,vel=34})
-        emit(:sdl.step, 100)
+        emit(:clock, 100)
 
         ;; SPEED
 
         ;; SEQ 0
         emit :out.serve
-        emit(:sdl.step, 500)
+        emit(:clock, 500)
         emit(:out.shot @{jog=:l,vel=40})
-        emit(:sdl.step, 500)
+        emit(:clock, 500)
         emit(:out.shot @{jog=:r,vel=60})
-        emit(:sdl.step, 500)
+        emit(:clock, 500)
         emit :out.fall
 
         emit(:out.shot @{jog=:r,vel=31})
-        emit(:sdl.step, 100000)
+        emit(:clock, 100000)
         emit(:out.shot @{jog=:l,vel=34})
-        emit(:sdl.step, 100)
+        emit(:clock, 100)
 
         ;; SEQ 1
         emit :out.serve
         emit(:out.shot @{jog=:l,vel=34})
-        emit(:sdl.step, (6*60*1000)/2)
+        emit(:clock, (6*60*1000)/2)
         emit :out.fall
 
         ;; POWER
@@ -84,10 +84,10 @@ watching j {
         emit :out.serve
         loop _ in 4 {
             emit(:out.shot @{jog=:r,vel=50})
-            emit(:sdl.step, 250)
+            emit(:clock, 250)
             emit(:out.shot @{jog=:l,vel=50})
-            emit(:sdl.step, 250)
+            emit(:clock, 250)
         }
-        emit(:sdl.step, (6*60*1000)/2)
+        emit(:clock, (6*60*1000)/2)
     }
 }

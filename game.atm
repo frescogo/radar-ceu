@@ -30,7 +30,7 @@ func Seqs (phase, seqs) {
             emit [:global] <-- s0
 
             par {
-                every _,dt in :sdl.step {
+                every _,dt in :clock {
                     set now = now + dt
                     emit [:global] (:ins.time, now)
                 }

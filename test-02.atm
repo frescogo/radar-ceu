@@ -15,7 +15,7 @@ func seq (t) {
     loop _,v in t {
         val dt = v[1] - now
         set now = v[1]
-        emit(:sdl.step, dt)
+        emit(:clock, dt)
         emit(:out.shot @{jog=v[2],vel=v[3]})
     }
 }
