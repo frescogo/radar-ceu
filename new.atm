@@ -1,6 +1,6 @@
 val G = require "global"
 
-func Seq (phase, t0, i, seq) {
+func Seq (phase, i, seq) {
     watching :out.fall {
         var s0 = await :out.shot            ;; pode cair antes do 1o golpe
         set seq[+]   = s0
@@ -38,6 +38,30 @@ func Seq (phase, t0, i, seq) {
     }
 }
 
+test {
+    print "----------"
+    do {
+        print "Testing Seq 1..."
+        pin ss = spawn Seq(:speed, 1, @{})
+        var ok = false
+        spawn {
+            val s0 = await(:out.shot)
+            do {
+                assert(s0.now == 0)
+                assert(s0.phase == :speed)
+                assert(s0.valid == false)
+                assert(s0.vel == 99)
+            }
+            set ok = true
+        }
+        emit :out.serve
+        emit(:out.shot @{jog=:u,vel=99})
+        emit :out.fall
+        assert(ok)
+        print "...OK: 1"
+    }
+}
+
 func Seqs (phase, seqs) {
     set pub = seqs
     loop i {
@@ -45,12 +69,13 @@ func Seqs (phase, seqs) {
         val seq = @{}
         set seqs[+] = seq
         emit [:global] (:ins.seq, true, i)
-        await Seq(phase, X, i, seq)
+        await Seq(phase, i, seq)
         emit [:global] (:ins.seq, false, i)
     }
 }
 
 test {
+    print "----------"
     print "Testing Seqs..."
     var ok = false
     do {
@@ -130,6 +155,7 @@ func Game () {
 }
 
 test {
+    print "----------"
     print "Testing Game..."
     var ok = false
     do {
