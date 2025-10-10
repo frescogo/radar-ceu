@@ -19,16 +19,16 @@ func Seqs (phase, seqs) {
             emit [:global] (:ins.time, now)
         }
         var old = now
-        emit [:global] (:ins.time, now)
-
-        var s0 = await :out.shot
-        set s0.now = now
-        set s0.phase = phase
-        set s0.valid = false
-        set seq[+] = s0
-        emit [:global] <-- s0
-
         watching :out.fall {
+            emit [:global] (:ins.time, now)
+
+            var s0 = await :out.shot
+            set s0.now = now
+            set s0.phase = phase
+            set s0.valid = false
+            set seq[+] = s0
+            emit [:global] <-- s0
+
             par {
                 every _,dt in 'sdl.step' {
                     set now = now + dt
