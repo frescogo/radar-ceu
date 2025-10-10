@@ -1,0 +1,106 @@
+val G = require "global"
+
+func Seq (phase, t0, i, seq) {
+    await :out.shot
+    await :out.fall
+;;;
+    emit [:global] (:ins.seq, true, i)
+    defer {
+        emit [:global] (:ins.seq, false, i)
+    }
+
+    watching :out.fall {
+        var s0 = await :out.shot        ;; pode cair antes do 1o golpe
+        set s0.now   = t0
+        set s0.phase = phase
+        set s0.valid = false
+
+        set seq[+] = s0
+        emit [:global] <-- s0
+
+        val tX = ENV.now
+
+        defer {
+            set seq[=].valid = false    ;; o ultimo do loop fica invalido
+        }
+        every s in :out.shot {
+            set s.now   = ENV.now - T0
+            set s.phase = phase
+            set s.valid = ok where {
+                dt = (s.now - s0.now)
+                min = (s0.vel, s.vel) --> math.min
+                max = (s0.vel, s.vel) --> math.max
+                ok = (dt <= 1000) && match phase {
+                    :speed => ((min*1.25) >= max)
+                    :power => ((min*1.25) <= max)
+                }
+            }
+            set seq[+] = s
+            emit [:global] (s)
+            set s0 = s
+        }
+    }
+;;;
+}
+
+func Seqs (phase, seqs) {
+    loop i {
+        await :out.serve
+        val seq = @{}
+        set seqs[+] = seq
+        emit [:global] (:ins.seq, true, i)
+        await Seq(phase, X, i, seq)
+        emit [:global] (:ins.seq, false, i)
+    }
+}
+
+test {
+    print :Seqs
+    do {
+        set ENV = @{ now=0 }
+        pin ss = spawn Seqs(:speed, @{})
+        spawn {
+            print :1
+            await(:ins.seq, true, 1)
+            await(:ins.seq, false, 1)
+            print :ok
+            print :2
+            await(:ins.seq, true, 2)
+            await(:ins.seq, false, 2)
+            print :ok
+        }
+        loop _ in 2 {
+            emit :out.serve
+            emit :out.shot
+            emit :out.fall
+        }
+    }
+}
+
+func Game () {
+    val seqs = @{
+        speed = @{},
+        power = @{},
+    }
+    set pub = seqs
+
+    ;; Game
+    await :out.start
+    emit [:global] (:ins.game, true)
+    do {
+        ;; Phase :speed
+        emit [:global] (:ins.phase, true, :speed)
+        watching \(e,now){ (e==:ins.time) && (now>=G.time)} {
+            await Seqs(:speed, seqs.speed)
+        }
+        emit [:global] (:ins.phase, false, :speed)
+
+        ;; Phase :power
+        emit [:global] (:ins.phase, true, :power)
+        watching \(e,now){ (e==:ins.time) && (now>=G.time)} {
+            await Seqs(:power, seqs.power)
+        }
+        emit [:global] (:ins.phase, false, :power)
+    }
+    emit [:global] (:ins.game, false)
+}
