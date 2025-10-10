@@ -74,15 +74,24 @@ test {
             do {
                 assert(s0.now == 0)
                 assert(s0.phase == :speed)
-                assert(s0.vel == 99)
                 assert(s0.valid == false)
+                assert(s0.vel == 99)
             }
             await(:ins.seq, false, 1)
             print "Seq - 1 - ok"
+
             print "Seq - 2 - go"
             await(:ins.seq, true, 2)
+            val s0 = await(:out.shot)
+            do {
+                assert(s0.now == 0)
+                assert(s0.phase == :speed)
+                assert(s0.valid == false)
+                assert(s0.vel == 99)
+            }
             await(:ins.seq, false, 2)
             print "Seq - 2 - ok"
+
             set ok = true
         }
         loop _ in 2 {
