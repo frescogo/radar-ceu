@@ -12,14 +12,14 @@ func Seqs (phase, seqs) {
         val seq = @{}
         set seqs[+] = seq
 
-        emit [:global] (:go.seq, true, i)
+        emit [:global] (:ins.seq, true, i)
         defer {
             set seq[=].valid = false
-            emit [:global] (:go.seq, false, i)
-            emit [:global] (:go.time, now)
+            emit [:global] (:ins.seq, false, i)
+            emit [:global] (:ins.time, now)
         }
         var old = now
-        emit [:global] (:go.time, now)
+        emit [:global] (:ins.time, now)
 
         var s0 = await :out.shot
         set s0.now = now
@@ -32,7 +32,7 @@ func Seqs (phase, seqs) {
             par {
                 every _,dt in 'sdl.step' {
                     set now = now + dt
-                    emit [:global] (:go.time, now)
+                    emit [:global] (:ins.time, now)
                 }
             } with {
                 every s in :out.shot {
@@ -55,7 +55,7 @@ func Seqs (phase, seqs) {
             }
         }
         set now = old + G.fall
-        emit [:global] (:go.fall, i, now)
+        emit [:global] (:ins.fall, i, now)
     }
 }
 
@@ -68,21 +68,21 @@ func Game () {
 
     ;; Game
     await :out.start
-    emit [:global] (:go.game, true)
+    emit [:global] (:ins.game, true)
     do {
         ;; Phase :speed
-        emit [:global] (:go.phase, true, :speed)
-        watching \(e,now){ (e==:go.time) && (now>=G.time)} {
+        emit [:global] (:ins.phase, true, :speed)
+        watching \(e,now){ (e==:ins.time) && (now>=G.time)} {
             await Seqs(:speed, seqs.speed)
         }
-        emit [:global] (:go.phase, false, :speed)
+        emit [:global] (:ins.phase, false, :speed)
 
         ;; Phase :power
-        emit [:global] (:go.phase, true, :power)
-        watching \(e,now){ (e==:go.time) && (now>=G.time)} {
+        emit [:global] (:ins.phase, true, :power)
+        watching \(e,now){ (e==:ins.time) && (now>=G.time)} {
             await Seqs(:power, seqs.power)
         }
-        emit [:global] (:go.phase, false, :power)
+        emit [:global] (:ins.phase, false, :power)
     }
-    emit [:global] (:go.game, false)
+    emit [:global] (:ins.game, false)
 }

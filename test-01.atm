@@ -13,39 +13,39 @@ watching j {
     par {
         print("GAME 1: ??")
         do {
-            await(:go.game, true)
-            await(:go.phase, true, :speed)
+            await(:ins.game, true)
+            await(:ins.phase, true, :speed)
 
-            await(:go.seq, true, 1)
+            await(:ins.seq, true, 1)
             val s = await(:out.shot)
             assert((s.now==0) && (s.jog==:l) && (s.vel==40))
             val s = await(:out.shot)
             assert((s.now==500) && (s.jog==:r) && (s.vel==60))
-            val _,t = await(:go.time)
+            val _,t = await(:ins.time)
             assert(t == 1000)
-            val _,_,t = await(:go.fall, 1)
+            val _,_,t = await(:ins.fall, 1)
             assert(t == (500+12000))
-            await(:go.seq, false, 1)
+            await(:ins.seq, false, 1)
 
-            await(:go.seq, true, 2)
+            await(:ins.seq, true, 2)
             val s = await(:out.shot)
             assert((s.now==12500) && (s.jog==:l) && (s.vel==34))
-            await(:go.seq, false, 2)
+            await(:ins.seq, false, 2)
 
-            await(:go.phase, false, :speed)
-            await(:go.phase, true, :power)
+            await(:ins.phase, false, :speed)
+            await(:ins.phase, true, :power)
 
-            await(:go.seq, true, 1)
+            await(:ins.seq, true, 1)
             loop i in 4 {
                 val so = await(:out.shot)
                 assert((so.now==((i-1)*500)) && (so.jog==:r) && (so.vel==50))
                 val si = await(:out.shot)
                 assert((si.now==(((i-1)*500) + 250)) && (si.jog==:l) && (si.vel==50))
             }
-            await(:go.seq, false, 1)
+            await(:ins.seq, false, 1)
 
-            await(:go.phase, false, :power)
-            await(:go.game, false)
+            await(:ins.phase, false, :power)
+            await(:ins.game, false)
         }
         print("GAME 1: ok")
     } with {

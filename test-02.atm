@@ -49,12 +49,12 @@ watching j {
     par {
         print("GAME 2: ??")
         do {
-            await(:go.game, true)
-            await(:go.phase, true, :speed)
+            await(:ins.game, true)
+            await(:ins.phase, true, :speed)
 
             ;; SEQ 1
             do {
-                await(:go.seq, true, 1)
+                await(:ins.seq, true, 1)
                 loop i in 63 {
                     val s = await(:out.shot)
                     if i ?> @{10,11,15,19,20,21,23,24,25,29,42,43} {
@@ -63,14 +63,14 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 1)
+                val _,_,t = await(:ins.fall, 1)
                 assert(t == 49252)
-                await(:go.seq, false, 1)
+                await(:ins.seq, false, 1)
             }
 
             ;; SEQ 2
             do {
-                await(:go.seq, true, 2)
+                await(:ins.seq, true, 2)
                 loop i in 43 {
                     val s = await(:out.shot)
                     if i ?> @{11,12,16,34,39,43} {
@@ -79,14 +79,14 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 2)
+                val _,_,t = await(:ins.fall, 2)
                 assert(t == 86669)
-                await(:go.seq, false, 2)
+                await(:ins.seq, false, 2)
             }
 
             ;; SEQ 3
             do {
-                await(:go.seq, true, 3)
+                await(:ins.seq, true, 3)
                 loop i in 43 {  ;; TODO: no tests 44=>122
                     val s = await(:out.shot)
                     if i ?> @{11,12,14,27,48,49,55,56,70,75,76,77,84,85,87,88,90,91,103,104,112,113,114,115,118,119} {
@@ -95,41 +95,41 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 3)
+                val _,_,t = await(:ins.fall, 3)
                 assert(t == 176496)
-                await(:go.seq, false, 3)
+                await(:ins.seq, false, 3)
             }
 
             ;; SEQ 4
             do {
-                await(:go.seq, true, 4)
+                await(:ins.seq, true, 4)
                 loop i in 7 {
                     val s = await(:out.shot)
                     assert(!s.valid)
                 }
-                watching :go.seq, false, 4 {
-                    await(:go.fall, 4)
+                watching :ins.seq, false, 4 {
+                    await(:ins.fall, 4)
                     error()
                 }
             }
 
-            await(:go.phase, false, :speed)
-            await(:go.phase, true,  :power)
+            await(:ins.phase, false, :speed)
+            await(:ins.phase, true,  :power)
 
             ;; SEQ 1
             do {
-                await(:go.seq, true, 1)
+                await(:ins.seq, true, 1)
                 loop i in 88 {
                     await(:out.shot)
                 }
-                val _,_,t = await(:go.fall, 1)
+                val _,_,t = await(:ins.fall, 1)
                 assert(t == 67228)
-                await(:go.seq, false, 1)
+                await(:ins.seq, false, 1)
             }
 
             ;; SEQ 2
             do {
-                await(:go.seq, true, 2)
+                await(:ins.seq, true, 2)
                 loop i in 29 {
                     val s = await(:out.shot)
                     if i ?> @{1,8,9,11,24,25,26} {
@@ -138,14 +138,14 @@ watching j {
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 2)
+                val _,_,t = await(:ins.fall, 2)
                 assert(t == 95945)
-                await(:go.seq, false, 2)
+                await(:ins.seq, false, 2)
             }
 
             ;; SEQ 3
             do {
-                await(:go.seq, true, 3)
+                await(:ins.seq, true, 3)
                 loop i in 34 {
                     val s = await(:out.shot)
                     if i ?> @{1,12,13,14,17,24,25,28,29,32} {
@@ -155,14 +155,14 @@ watching j {
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 3)
+                val _,_,t = await(:ins.fall, 3)
                 assert(t == 127328)
-                await(:go.seq, false, 3)
+                await(:ins.seq, false, 3)
             }
 
             ;; SEQ 4
             do {
-                await(:go.seq, true, 4)
+                await(:ins.seq, true, 4)
                 loop i in 13 {
                     val s = await(:out.shot)
                     if i ?> @{1,3,4} {
@@ -172,14 +172,14 @@ watching j {
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 4)
+                val _,_,t = await(:ins.fall, 4)
                 assert(t == 146162)
-                await(:go.seq, false, 4)
+                await(:ins.seq, false, 4)
             }
 
             ;; SEQ 5
             do {
-                await(:go.seq, true, 5)
+                await(:ins.seq, true, 5)
                 loop i in 9 {
                     val s = await(:out.shot)
                     if i ?> @{2,3,4,5} {
@@ -189,14 +189,14 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 5)
+                val _,_,t = await(:ins.fall, 5)
                 assert(t == 162380)
-                await(:go.seq, false, 5)
+                await(:ins.seq, false, 5)
             }
 
             ;; SEQ 6
             do {
-                await(:go.seq, true, 6)
+                await(:ins.seq, true, 6)
                 loop i in 22 {
                     val s = await(:out.shot)
                     if i ?> @{1,2,21,23} {
@@ -206,13 +206,13 @@ watching j {
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:go.fall, 6)
+                val _,_,t = await(:ins.fall, 6)
                 assert(t == 188315)
-                await(:go.seq, false, 6)
+                await(:ins.seq, false, 6)
             }
 
-            await(:go.phase, false, :power)
-            await(:go.game, false)
+            await(:ins.phase, false, :power)
+            await(:ins.game, false)
         }
         print("GAME 2: ok")
     } with {
