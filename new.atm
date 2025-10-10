@@ -2,7 +2,13 @@ val G = require "global"
 
 func Seq (phase, t0, i, seq) {
     await :out.shot
-    await :out.fall
+    var now = 0
+    watching :out.fall {
+        every _,dt in :clock {
+            set now = now + dt
+            emit [:global] (:ins.time, now)
+        }
+    }
 ;;;
     emit [:global] (:ins.seq, true, i)
     defer {
@@ -55,19 +61,20 @@ func Seqs (phase, seqs) {
 }
 
 test {
-    print :Seqs
+    print "Testing Seqs..."
+    var ok = false
     do {
-        set ENV = @{ now=0 }
         pin ss = spawn Seqs(:speed, @{})
         spawn {
-            print :1
+            print "Seq - 1 - go"
             await(:ins.seq, true, 1)
             await(:ins.seq, false, 1)
-            print :ok
-            print :2
+            print "Seq - 1 - ok"
+            print "Seq - 2 - go"
             await(:ins.seq, true, 2)
             await(:ins.seq, false, 2)
-            print :ok
+            print "Seq - 2 - ok"
+            set ok = true
         }
         loop _ in 2 {
             emit :out.serve
@@ -75,6 +82,8 @@ test {
             emit :out.fall
         }
     }
+    assert(ok)
+    print "...OK"
 }
 
 func Game () {
@@ -103,4 +112,54 @@ func Game () {
         emit [:global] (:ins.phase, false, :power)
     }
     emit [:global] (:ins.game, false)
+}
+
+test {
+    print "Testing Game..."
+    var ok = false
+    do {
+        var phase = nil
+        pin g = spawn Game()
+        spawn {
+            print "Game - go"
+            await(:ins.game, true)
+
+            print "Phase - speed - go"
+            await(:ins.phase, true, :speed)
+            set phase = :speed
+            await(:ins.phase, false, :speed)
+            print "Phase - speed - ok"
+
+            print "Phase - power - go"
+            await(:ins.phase, true, :power)
+            set phase = :power
+            await(:ins.phase, false, :power)
+            print "Phase - power - ok"
+
+            set phase = nil
+            await(:ins.game, false)
+            print "Game - ok"
+            set ok = true
+        }
+        assert(phase == nil)
+        emit :out.start
+
+        assert(phase == :speed)
+        emit :out.serve
+        emit :out.shot
+        emit(:clock, 1000*60*1)
+        assert(phase == :speed)
+        emit(:clock, 1000*60*1)
+        assert(phase == :speed)
+        emit(:clock, 1000*60*1)
+
+        assert(phase == :power)
+        emit :out.serve
+        emit :out.shot
+        emit(:clock, 1000*60*3)
+
+        assert(phase == nil)
+    }
+    assert(ok)
+    print "...OK"
 }
