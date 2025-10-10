@@ -19,14 +19,14 @@ func Seq (phase, i, seq) {
                 set seq[=].valid = false    ;; ultimo eh sempre invalido
             }
             every s in :out.shot {
-                set seq[+]   = s0
-                set s0.now   = now
-                set s0.phase = phase
-                set s0.valid = false
+                set seq[+]   = s
+                set s.now   = now
+                set s.phase = phase
+                set s.valid = false
                 set s.valid = ok where {
                     dt = (s.now - s0.now)
-                    min = (s0.vel, s.vel) --> math.min
-                    max = (s0.vel, s.vel) --> math.max
+                    min = (s.vel, s.vel) --> math.min
+                    max = (s.vel, s.vel) --> math.max
                     ok = (dt <= 1000) && match phase {
                         :speed => ((min*1.25) >= max)
                         :power => ((min*1.25) <= max)
@@ -45,18 +45,28 @@ test {
         pin ss = spawn Seq(:speed, 1, @{})
         var ok = false
         spawn {
+            print("    shot 0")
             val s0 = await(:out.shot)
-            do {
-                assert(s0.now == 0)
-                assert(s0.phase == :speed)
-                assert(s0.valid == false)
-                assert(s0.vel == 99)
-            }
+            assert((s0.now==0) && (s0.jog==:l) && (s0.vel==40) && (!s0.valid))
+            print("    shot 1")
+            val s1 = await(:out.shot)
+            assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==60) && (s1.valid))
+            print("    shot 2")
+            val s2 = await(:out.shot)
+            assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==60) && (!s2.valid))
             set ok = true
         }
-        emit :out.serve
-        emit(:out.shot @{jog=:u,vel=99})
+        emit(:clock, 500)                   ;; innocuous
+        emit(:out.shot @{jog=:l,vel=40})
+        emit(:clock, 1000)
+        emit(:out.shot @{jog=:r,vel=60})
+        emit(:clock, 1001)
+        emit(:out.shot @{jog=:l,vel=60})
+        emit(:clock, 500)
         emit :out.fall
+        emit(:clock, 500)                   ;; innocuous
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:clock, 500)                   ;; innocuous
         assert(ok)
         print "...OK: 1"
     }
@@ -108,9 +118,11 @@ test {
             set ok = true
         }
         loop _ in 2 {
+            emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
             emit :out.serve
             emit(:out.shot @{jog=:u,vel=99})
             emit :out.fall
+            emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
         }
         assert(#ss.pub == 2)
         assert(#ss.pub[1] == 1)
@@ -186,6 +198,7 @@ test {
         emit :out.start
 
         assert(phase == :speed)
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
         emit :out.serve
         emit(:out.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*1)
@@ -193,11 +206,14 @@ test {
         emit(:clock, 1000*60*1)
         assert(phase == :speed)
         emit(:clock, 1000*60*1)
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
 
         assert(phase == :power)
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
         emit :out.serve
         emit(:out.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*3)
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
 
         assert(phase == nil)
         assert(g.pub.speed[1][1].phase == :speed)
