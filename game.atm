@@ -79,8 +79,10 @@ func Seqs (phase, seqs) {
         val seq = @{ now=now }
         set seqs[+] = seq
         emit [:global] (:ins.seq, true, i)
+        defer {
+            emit [:global] (:ins.seq, false, i)
+        }
         await Seq(phase, i, seq)
-        emit [:global] (:ins.seq, false, i)
         set now = seq.now
     }
 }
@@ -207,12 +209,14 @@ test {
             print "Phase - speed - go"
             await(:ins.phase, true, :speed)
             set phase = :speed
+            await(:ins.seq, false, 1)
             await(:ins.phase, false, :speed)
             print "Phase - speed - ok"
 
             print "Phase - power - go"
             await(:ins.phase, true, :power)
             set phase = :power
+            await(:ins.seq, false, 1)
             await(:ins.phase, false, :power)
             print "Phase - power - ok"
 
