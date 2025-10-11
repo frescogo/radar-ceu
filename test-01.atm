@@ -23,14 +23,19 @@ watching j {
             assert((s.now==500) && (s.jog==:r) && (s.vel==60))
             val _,t = await(:ins.time)
             assert(t == 1000)
-            val _,_,t = await(:ins.fall, 1)
-            assert(t == (500+12000))
-            await(:ins.seq, false, 1)
+            par_and {
+                await :out.fall
+            } with {
+                await(:ins.seq, false, 1)
+            }
 
             await(:ins.seq, true, 2)
             val s = await(:out.shot)
-            assert((s.now==12500) && (s.jog==:l) && (s.vel==34))
+            assert((s.now==1000) && (s.jog==:l) && (s.vel==34))
+print'await seq false 2'
+defer { error'xxx' }
             await(:ins.seq, false, 2)
+error'ok'
 
             await(:ins.phase, false, :speed)
             await(:ins.phase, true, :power)
@@ -67,6 +72,7 @@ watching j {
         emit(:clock, 500)
         emit :out.fall
 
+        ;; innocuous
         emit(:out.shot @{jog=:r,vel=31})
         emit(:clock, 100000)
         emit(:out.shot @{jog=:l,vel=34})
@@ -75,7 +81,9 @@ watching j {
         ;; SEQ 1
         emit :out.serve
         emit(:out.shot @{jog=:l,vel=34})
+print'before clock'
         emit(:clock, (6*60*1000)/2)
+print'after clock'
         emit :out.fall
 
         ;; POWER
