@@ -63,7 +63,8 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 1)
+                await(:out.fall)
+xprint(j.pub.speed[=].now)
                 assert(t == 49252)
                 await(:ins.seq, false, 1)
             }

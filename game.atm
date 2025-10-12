@@ -24,8 +24,8 @@ func Seq (phase, i, seq) {
                 set s.valid = false
                 set s.valid = ok where {
                     dt = (s.now - s0.now)
-                    min = (s.vel, s.vel) --> math.min
-                    max = (s.vel, s.vel) --> math.max
+                    min = (s.vel, s0.vel) --> math.min
+                    max = (s.vel, s0.vel) --> math.max
                     ok = (dt <= 1000) && match phase {
                         :speed => ((min*1.25) >= max)
                         :power => ((min*1.25) <= max)
