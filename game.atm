@@ -80,7 +80,6 @@ func Seqs (phase, seqs) {
         set seqs[+] = seq
         emit [:global] (:ins.seq, true, i)
         defer {
-print('emit seq false', i)
             emit [:global] (:ins.seq, false, i)
         }
         await Seq(phase, i, seq)

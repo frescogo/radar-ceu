@@ -32,10 +32,7 @@ watching j {
             await(:ins.seq, true, 2)
             val s = await(:out.shot)
             assert((s.now==1000) && (s.jog==:l) && (s.vel==34))
-print'await seq false 2'
-defer { error'xxx' }
             await(:ins.seq, false, 2)
-error'ok'
 
             await(:ins.phase, false, :speed)
             await(:ins.phase, true, :power)
@@ -81,9 +78,7 @@ error'ok'
         ;; SEQ 1
         emit :out.serve
         emit(:out.shot @{jog=:l,vel=34})
-print'before clock'
         emit(:clock, (6*60*1000)/2)
-print'after clock'
         emit :out.fall
 
         ;; POWER
