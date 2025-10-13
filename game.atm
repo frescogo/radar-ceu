@@ -40,7 +40,7 @@ func Seq (phase, i, seq) {
 test {
     print "----------"
     do {
-        print "Testing Seq 1..."
+        print "Testing Seq 1 (speed)..."
         pin ss = spawn Seq(:speed, 1, @{now=0})
         var ok = false
         spawn {
@@ -49,18 +49,58 @@ test {
             assert((s0.now==0) && (s0.jog==:l) && (s0.vel==40) && (!s0.valid))
             print("    shot 1")
             val s1 = await(:out.shot)
-            assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==60) && (s1.valid))
+            assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==50) && (s1.valid))
             print("    shot 2")
             val s2 = await(:out.shot)
-            assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==60) && (!s2.valid))
+            assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==55) && (!s2.valid))
+            print("    shot 3")
+            val s3 = await(:out.shot)
+            assert((s3.now==2501) && (s3.jog==:r) && (s3.vel==80) && (!s3.valid))
             set ok = true
         }
         emit(:clock, 500)                   ;; innocuous
-        emit(:out.shot @{jog=:l,vel=40})
+        emit(:out.shot @{jog=:l,vel=40})    ;; s0: !valid (first)
         emit(:clock, 1000)
-        emit(:out.shot @{jog=:r,vel=60})
+        emit(:out.shot @{jog=:r,vel=50})    ;; s1: valid
         emit(:clock, 1001)
-        emit(:out.shot @{jog=:l,vel=60})
+        emit(:out.shot @{jog=:l,vel=55})    ;; s2: !valid (1001)
+        emit(:clock, 500)
+        emit(:out.shot @{jog=:r,vel=80})    ;; s3: !valid (>25%)
+        emit(:clock, 500)
+        emit :out.fall
+        emit(:clock, 500)                   ;; innocuous
+        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:clock, 500)                   ;; innocuous
+        assert(ok)
+        print "...OK: 1"
+    }
+    do {
+        print "Testing Seq 2 (power)..."
+        pin ss = spawn Seq(:power, 1, @{now=0})
+        var ok = false
+        spawn {
+            print("    shot 0")
+            val s0 = await(:out.shot)
+            assert((s0.now==0) && (s0.jog==:l) && (s0.vel==50) && (!s0.valid))
+            print("    shot 1")
+            val s1 = await(:out.shot)
+            assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==60) && (!s1.valid))
+            print("    shot 2")
+            val s2 = await(:out.shot)
+            assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==80) && (!s2.valid))
+            print("    shot 3")
+            val s3 = await(:out.shot)
+            assert((s3.now==2501) && (s3.jog==:r) && (s3.vel==60) && (s3.valid))
+            set ok = true
+        }
+        emit(:clock, 500)                   ;; innocuous
+        emit(:out.shot @{jog=:l,vel=50})    ;; s0: !valid (first)
+        emit(:clock, 1000)
+        emit(:out.shot @{jog=:r,vel=60})    ;; s1: !valid (<25%)
+        emit(:clock, 1001)
+        emit(:out.shot @{jog=:l,vel=80})    ;; s2: !valid (1001)
+        emit(:clock, 500)
+        emit(:out.shot @{jog=:r,vel=60})    ;; s3: valid
         emit(:clock, 500)
         emit :out.fall
         emit(:clock, 500)                   ;; innocuous
@@ -103,7 +143,7 @@ test {
                     assert(s0.phase == :speed)
                     assert(s0.valid == false)
                     assert(s0.jog == :r)
-                    assert(s0.vel == 33)
+                    assert(s0.vel == 44)
                 }
                 val s1 = await(:out.shot)
                 do {
@@ -111,7 +151,7 @@ test {
                     assert(s1.phase == :speed)
                     assert(s1.valid == true)
                     assert(s1.jog == :l)
-                    assert(s1.vel == 66)
+                    assert(s1.vel == 55)
                 }
             }
             await(:ins.seq, false, 1)
@@ -126,7 +166,7 @@ test {
                     assert(s0.phase == :speed)
                     assert(s0.valid == false)
                     assert(s0.jog == :r)
-                    assert(s0.vel == 33)
+                    assert(s0.vel == 44)
                 }
                 val s1 = await(:out.shot)
                 do {
@@ -134,7 +174,7 @@ test {
                     assert(s1.phase == :speed)
                     assert(s1.valid == true)
                     assert(s1.jog == :l)
-                    assert(s1.vel == 66)
+                    assert(s1.vel == 55)
                 }
             }
             await(:ins.seq, false, 2)
@@ -145,9 +185,9 @@ test {
         loop _ in 2 {
             emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
             emit :out.serve
-            emit(:out.shot @{jog=:r,vel=33})
+            emit(:out.shot @{jog=:r,vel=44})
             emit(:clock, 200)
-            emit(:out.shot @{jog=:l,vel=66})
+            emit(:out.shot @{jog=:l,vel=55})
             emit :out.fall
             emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
         }
@@ -155,12 +195,12 @@ test {
         assert(#ss.pub[1] == 2)
         assert(ss.pub[1][1] --> \{
             (it.now==0) && (it.phase==:speed) &&
-            (it.jog==:r) && (it.vel==33) && (!it.valid)
+            (it.jog==:r) && (it.vel==44) && (!it.valid)
         })
         assert(#ss.pub[2] == 2)
         assert(ss.pub[2][2] --> \{
             (it.now==400) && (it.phase==:speed) &&
-            (it.jog==:l) && (it.vel==66) && (!it.valid)
+            (it.jog==:l) && (it.vel==55) && (!it.valid)
         })
     }
     assert(ok)
