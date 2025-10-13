@@ -202,6 +202,7 @@ test {
             (it.now==400) && (it.phase==:speed) &&
             (it.jog==:l) && (it.vel==55) && (!it.valid)
         })
+        assert(ss.pub[=][=].now == 400)
     }
     assert(ok)
     print "...OK"

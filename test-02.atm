@@ -63,10 +63,12 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                await(:out.fall)
-xprint(j.pub.speed[=].now)
-                assert(t == 49252)
-                await(:ins.seq, false, 1)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 1)
+                }
+                assert(j.pub.speed[=][=].now == 37252)
             }
 
             ;; SEQ 2
