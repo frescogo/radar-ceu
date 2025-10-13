@@ -69,6 +69,7 @@ watching j {
                     await(:ins.seq, false, 1)
                 }
                 assert(j.pub.speed[=][=].now == 37252)
+                assert(j.pub.speed[=].now == 49252)
             }
 
             ;; SEQ 2
@@ -82,9 +83,12 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 2)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 2)
+                }
                 assert(t == 86669)
-                await(:ins.seq, false, 2)
             }
 
             ;; SEQ 3

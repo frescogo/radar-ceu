@@ -35,6 +35,7 @@ func Seq (phase, i, seq) {
             }
         }
     }
+    set seq.now = seq.now + G.fall
 }
 
 test {
@@ -162,7 +163,7 @@ test {
             do {
                 val s0 = await(:out.shot)
                 do {
-                    assert(s0.now == 200)
+                    assert(s0.now == 12200)
                     assert(s0.phase == :speed)
                     assert(s0.valid == false)
                     assert(s0.jog == :r)
@@ -170,7 +171,7 @@ test {
                 }
                 val s1 = await(:out.shot)
                 do {
-                    assert(s1.now == 400)
+                    assert(s1.now == 12400)
                     assert(s1.phase == :speed)
                     assert(s1.valid == true)
                     assert(s1.jog == :l)
@@ -199,10 +200,10 @@ test {
         })
         assert(#ss.pub[2] == 2)
         assert(ss.pub[2][2] --> \{
-            (it.now==400) && (it.phase==:speed) &&
+            (it.now==12400) && (it.phase==:speed) &&
             (it.jog==:l) && (it.vel==55) && (!it.valid)
         })
-        assert(ss.pub[=][=].now == 400)
+        assert(ss.pub[=][=].now == 12400)
     }
     assert(ok)
     print "...OK"
