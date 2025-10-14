@@ -127,7 +127,6 @@ watching j {
 
             await(:ins.phase, false, :speed)
             await(:ins.phase, true,  :power)
-error:ok
 
             ;; SEQ 1
             do {
@@ -135,9 +134,13 @@ error:ok
                 loop i in 88 {
                     await(:out.shot)
                 }
-                val _,_,t = await(:ins.fall, 1)
-                assert(t == 67228)
-                await(:ins.seq, false, 1)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 1)
+                }
+                assert(j.pub.power[=][=].now == 55228)
+                assert(j.pub.power[=].now == (55228+12000))
             }
 
             ;; SEQ 2
@@ -151,9 +154,13 @@ error:ok
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 2)
-                assert(t == 95945)
-                await(:ins.seq, false, 2)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 2)
+                }
+                assert(j.pub.power[=][=].now == (55228+12000+16717))
+                assert(j.pub.power[=].now == (55228+12000+16717+12000))
             }
 
             ;; SEQ 3
@@ -168,9 +175,13 @@ error:ok
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 3)
-                assert(t == 127328)
-                await(:ins.seq, false, 3)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 3)
+                }
+                assert(j.pub.power[=][=].now == (55228+12000+16717+12000+19383))
+                assert(j.pub.power[=].now == (55228+12000+16717+12000+19383+12000))
             }
 
             ;; SEQ 4
@@ -185,9 +196,13 @@ error:ok
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 4)
-                assert(t == 146162)
-                await(:ins.seq, false, 4)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 4)
+                }
+                assert(j.pub.power[=][=].now == (55228+12000+16717+12000+19383+12000+6834))
+                assert(j.pub.power[=].now == (55228+12000+16717+12000+19383+12000+6834+12000))
             }
 
             ;; SEQ 5
@@ -202,9 +217,13 @@ error:ok
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 5)
-                assert(t == 162380)
-                await(:ins.seq, false, 5)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 5)
+                }
+                assert(j.pub.power[=][=].now == (55228+12000+16717+12000+19383+12000+6834+12000+4218))
+                assert(j.pub.power[=].now == (55228+12000+16717+12000+19383+12000+6834+12000+4218+12000))
             }
 
             ;; SEQ 6
@@ -219,12 +238,18 @@ error:ok
                         assert(s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 6)
-                assert(t == 188315)
-                await(:ins.seq, false, 6)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 6)
+                }
+                assert(j.pub.power[=][=].now == (55228+12000+16717+12000+19383+12000+6834+12000+4218+12000+13935))
+                assert(j.pub.power[=].now == (55228+12000+16717+12000+19383+12000+6834+12000+4218+12000+13935+12000))
             }
 
+print'>>>'
             await(:ins.phase, false, :power)
+error:ok
             await(:ins.game, false)
         }
         print("GAME 2: ok")
