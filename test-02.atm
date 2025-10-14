@@ -88,7 +88,8 @@ watching j {
                 } with {
                     await(:ins.seq, false, 2)
                 }
-                assert(t == 86669)
+                assert(j.pub.speed[=][=].now == 74669)
+                assert(j.pub.speed[=].now == 86669)
             }
 
             ;; SEQ 3
@@ -102,9 +103,13 @@ watching j {
                         assert(!s.valid)
                     }
                 }
-                val _,_,t = await(:ins.fall, 3)
-                assert(t == 176496)
-                await(:ins.seq, false, 3)
+                par_and {
+                    await(:out.fall)
+                } with {
+                    await(:ins.seq, false, 3)
+                }
+                assert(j.pub.speed[=][=].now == (86669+77827))
+                assert(j.pub.speed[=].now == (86669+77827+12000))
             }
 
             ;; SEQ 4
@@ -115,13 +120,14 @@ watching j {
                     assert(!s.valid)
                 }
                 watching :ins.seq, false, 4 {
-                    await(:ins.fall, 4)
+                    await(:out.fall, 4)
                     error()
                 }
             }
 
             await(:ins.phase, false, :speed)
             await(:ins.phase, true,  :power)
+error:ok
 
             ;; SEQ 1
             do {
