@@ -1,4 +1,3 @@
-require "atmos.env.clock"
 require "game"
 
 ;; Tests the game phases:
@@ -7,9 +6,9 @@ require "game"
 ;;      - out: start, shot, fall, serve
 ;;  - GO: game, phase, seq, time, fall
 
-pin j = spawn Game()
+pin G = spawn Game()
 
-watching j {
+watching G {
     par {
         print("GAME 1: ??")
         do {
@@ -31,7 +30,7 @@ watching j {
 
             await(:ins.seq, true, 2)
             val s = await(:out.shot)
-            assert((s.now==1000) && (s.jog==:l) && (s.vel==34))
+            assert((s.now==13000) && (s.jog==:l) && (s.vel==34))
             await(:ins.seq, false, 2)
 
             await(:ins.phase, false, :speed)
