@@ -1,20 +1,20 @@
-require "atmos.env.sdl"
+val sdl = require "atmos.env.sdl"
 
 ;; calculate how fast
-;; 20/s
+;; 110 in 5s ~ 20/s
 
 val Serial = require('periphery').Serial
 val f = Serial("/dev/ttyACM0", 9600)
 
 val X = string.char(0x88)
 
-val old = math.floor(os.clock() * 1000)
+await :clock
+val old = sdl.now
 var n = 0
 
 loop {
-    await :sdl.step
-    val now = math.floor(os.clock() * 1000)
-    until ((now-old) > 5000)
+    await :clock
+    until ((sdl.now-old) > 5000)
     set n = n + 1
 
     var c = f::read(1)

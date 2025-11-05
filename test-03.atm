@@ -2,10 +2,10 @@ require "atmos.env.sdl"
 require "game"
 require "radar"
 
-;;pin r = spawn Radar("/dev/ttyACM0")
-;;set r.pub.pos = :l
-spawn Probe(@1)
-spawn Filter()
+pin r = spawn Radar("/dev/ttyACM0")
+set r.pub.pos = :l
+;;spawn Probe(@1)
+spawn Shots()
 
 every v in :out.shot {
     xprint(v)
