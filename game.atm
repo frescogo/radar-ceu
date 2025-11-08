@@ -2,7 +2,7 @@ val G = require "global"
 
 func Seq (phase, i, seq) {
     watching :out.fall {
-        var s0 = await :out.shot            ;; pode cair antes do 1o golpe
+        var s0 = await :radar.shot            ;; pode cair antes do 1o golpe
         set seq[+]   = s0
         set s0.now   = seq.now
         set s0.phase = phase
@@ -17,7 +17,7 @@ func Seq (phase, i, seq) {
             defer {
                 set seq[=].valid = false    ;; ultimo eh sempre invalido
             }
-            every s in :out.shot {
+            every s in :radar.shot {
                 set seq[+]   = s
                 set s.now   = seq.now
                 set s.phase = phase
@@ -47,31 +47,31 @@ test {
         var ok = false
         spawn {
             print("    shot 0")
-            val s0 = await(:out.shot)
+            val s0 = await(:radar.shot)
             assert((s0.now==0) && (s0.jog==:l) && (s0.vel==40) && (!s0.valid))
             print("    shot 1")
-            val s1 = await(:out.shot)
+            val s1 = await(:radar.shot)
             assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==50) && (s1.valid))
             print("    shot 2")
-            val s2 = await(:out.shot)
+            val s2 = await(:radar.shot)
             assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==55) && (!s2.valid))
             print("    shot 3")
-            val s3 = await(:out.shot)
+            val s3 = await(:radar.shot)
             assert((s3.now==2501) && (s3.jog==:r) && (s3.vel==80) && (!s3.valid))
             set ok = true
         }
         emit(:clock, 500)                   ;; innocuous
-        emit(:out.shot @{jog=:l,vel=40})    ;; s0: !valid (first)
+        emit(:radar.shot @{jog=:l,vel=40})    ;; s0: !valid (first)
         emit(:clock, 1000)
-        emit(:out.shot @{jog=:r,vel=50})    ;; s1: valid
+        emit(:radar.shot @{jog=:r,vel=50})    ;; s1: valid
         emit(:clock, 1001)
-        emit(:out.shot @{jog=:l,vel=55})    ;; s2: !valid (1001)
+        emit(:radar.shot @{jog=:l,vel=55})    ;; s2: !valid (1001)
         emit(:clock, 500)
-        emit(:out.shot @{jog=:r,vel=80})    ;; s3: !valid (>25%)
+        emit(:radar.shot @{jog=:r,vel=80})    ;; s3: !valid (>25%)
         emit(:clock, 500)
         emit :out.fall
         emit(:clock, 500)                   ;; innocuous
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
         emit(:clock, 500)                   ;; innocuous
         assert(ok)
         print "...OK: 1"
@@ -82,31 +82,31 @@ test {
         var ok = false
         spawn {
             print("    shot 0")
-            val s0 = await(:out.shot)
+            val s0 = await(:radar.shot)
             assert((s0.now==0) && (s0.jog==:l) && (s0.vel==50) && (!s0.valid))
             print("    shot 1")
-            val s1 = await(:out.shot)
+            val s1 = await(:radar.shot)
             assert((s1.now==1000) && (s1.jog==:r) && (s1.vel==60) && (!s1.valid))
             print("    shot 2")
-            val s2 = await(:out.shot)
+            val s2 = await(:radar.shot)
             assert((s2.now==2001) && (s2.jog==:l) && (s2.vel==80) && (!s2.valid))
             print("    shot 3")
-            val s3 = await(:out.shot)
+            val s3 = await(:radar.shot)
             assert((s3.now==2501) && (s3.jog==:r) && (s3.vel==60) && (s3.valid))
             set ok = true
         }
         emit(:clock, 500)                   ;; innocuous
-        emit(:out.shot @{jog=:l,vel=50})    ;; s0: !valid (first)
+        emit(:radar.shot @{jog=:l,vel=50})    ;; s0: !valid (first)
         emit(:clock, 1000)
-        emit(:out.shot @{jog=:r,vel=60})    ;; s1: !valid (<25%)
+        emit(:radar.shot @{jog=:r,vel=60})    ;; s1: !valid (<25%)
         emit(:clock, 1001)
-        emit(:out.shot @{jog=:l,vel=80})    ;; s2: !valid (1001)
+        emit(:radar.shot @{jog=:l,vel=80})    ;; s2: !valid (1001)
         emit(:clock, 500)
-        emit(:out.shot @{jog=:r,vel=60})    ;; s3: valid
+        emit(:radar.shot @{jog=:r,vel=60})    ;; s3: valid
         emit(:clock, 500)
         emit :out.fall
         emit(:clock, 500)                   ;; innocuous
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
         emit(:clock, 500)                   ;; innocuous
         assert(ok)
         print "...OK: 1"
@@ -139,7 +139,7 @@ test {
             print "Seq - 1 - go"
             await(:ins.seq, true, 1)
             do {
-                val s0 = await(:out.shot)
+                val s0 = await(:radar.shot)
                 do {
                     assert(s0.now == 0)
                     assert(s0.phase == :speed)
@@ -147,7 +147,7 @@ test {
                     assert(s0.jog == :r)
                     assert(s0.vel == 44)
                 }
-                val s1 = await(:out.shot)
+                val s1 = await(:radar.shot)
                 do {
                     assert(s1.now == 200)
                     assert(s1.phase == :speed)
@@ -162,7 +162,7 @@ test {
             print "Seq - 2 - go"
             await(:ins.seq, true, 2)
             do {
-                val s0 = await(:out.shot)
+                val s0 = await(:radar.shot)
                 do {
                     assert(s0.now == 12200)
                     assert(s0.phase == :speed)
@@ -170,7 +170,7 @@ test {
                     assert(s0.jog == :r)
                     assert(s0.vel == 44)
                 }
-                val s1 = await(:out.shot)
+                val s1 = await(:radar.shot)
                 do {
                     assert(s1.now == 12400)
                     assert(s1.phase == :speed)
@@ -185,13 +185,13 @@ test {
             set ok = true
         }
         loop _ in 2 {
-            emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+            emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
             emit :out.serve
-            emit(:out.shot @{jog=:r,vel=44})
+            emit(:radar.shot @{jog=:r,vel=44})
             emit(:clock, 200)
-            emit(:out.shot @{jog=:l,vel=55})
+            emit(:radar.shot @{jog=:l,vel=55})
             emit :out.fall
-            emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+            emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
         }
         assert(#ss.pub == 2)
         assert(#ss.pub[1] == 2)
@@ -272,22 +272,22 @@ test {
         emit :out.start
 
         assert(phase == :speed)
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
         emit :out.serve
-        emit(:out.shot @{jog=:u,vel=99})
+        emit(:radar.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*1)
         assert(phase == :speed)
         emit(:clock, 1000*60*1)
         assert(phase == :speed)
         emit(:clock, 1000*60*1)
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
 
         assert(phase == :power)
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
         emit :out.serve
-        emit(:out.shot @{jog=:u,vel=99})
+        emit(:radar.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*3)
-        emit(:out.shot @{jog=:x,vel=0})     ;; innocuous
+        emit(:radar.shot @{jog=:x,vel=0})     ;; innocuous
 
         assert(phase == nil)
         assert(g.pub.speed[1][1].phase == :speed)
@@ -329,12 +329,12 @@ test {
 
         assert(phase == :speed)
         emit :out.serve
-        emit(:out.shot @{jog=:u,vel=99})
+        emit(:radar.shot @{jog=:u,vel=99})
         emit(:clock, 1000*60*1*3)
 
         assert(phase == :power)
         emit :out.serve
-        emit(:out.shot @{jog=:u,vel=99})
+        emit(:radar.shot @{jog=:u,vel=99})
         emit(:clock, (1000*60*1*3) - 5000)
         emit :out.fall
 

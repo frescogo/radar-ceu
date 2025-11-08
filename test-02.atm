@@ -16,7 +16,7 @@ func seq (t) {
         val dt = v[1] - now
         set now = v[1]
         emit(:clock, dt)
-        emit(:out.shot @{jog=v[2],vel=v[3]})
+        emit(:radar.shot @{jog=v[2],vel=v[3]})
     }
 }
 
@@ -56,7 +56,7 @@ watching j {
             do {
                 await(:ins.seq, true, 1)
                 loop i in 63 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{10,11,15,19,20,21,23,24,25,29,42,43} {
                         assert(s.valid)
                     } else {
@@ -76,7 +76,7 @@ watching j {
             do {
                 await(:ins.seq, true, 2)
                 loop i in 43 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{11,12,16,34,39,43} {
                         assert(s.valid)
                     } else {
@@ -96,7 +96,7 @@ watching j {
             do {
                 await(:ins.seq, true, 3)
                 loop i in 43 {  ;; TODO: no tests 44=>122
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{11,12,14,27,48,49,55,56,70,75,76,77,84,85,87,88,90,91,103,104,112,113,114,115,118,119} {
                         assert(s.valid)
                     } else {
@@ -116,7 +116,7 @@ watching j {
             do {
                 await(:ins.seq, true, 4)
                 loop i in 7 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     assert(!s.valid)
                 }
                 watching :ins.seq, false, 4 {
@@ -132,7 +132,7 @@ watching j {
             do {
                 await(:ins.seq, true, 1)
                 loop i in 88 {
-                    await(:out.shot)
+                    await(:radar.shot)
                 }
                 par_and {
                     await(:out.fall)
@@ -147,7 +147,7 @@ watching j {
             do {
                 await(:ins.seq, true, 2)
                 loop i in 29 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{1,8,9,11,24,25,26} {
                         assert(!s.valid)
                     } else {
@@ -167,7 +167,7 @@ watching j {
             do {
                 await(:ins.seq, true, 3)
                 loop i in 34 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{1,12,13,14,17,24,25,28,29,32} {
                         assert(!s.valid)
                     } else {
@@ -188,7 +188,7 @@ watching j {
             do {
                 await(:ins.seq, true, 4)
                 loop i in 13 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{1,3,4} {
                         assert(!s.valid)
                     } else {
@@ -209,7 +209,7 @@ watching j {
             do {
                 await(:ins.seq, true, 5)
                 loop i in 9 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{2,3,4,5} {
                         ;;xprint(s.vel*s.vel)
                         assert(s.valid)
@@ -230,7 +230,7 @@ watching j {
             do {
                 await(:ins.seq, true, 6)
                 loop i in 22 {
-                    val s = await(:out.shot)
+                    val s = await(:radar.shot)
                     if i ?> @{1,2,21,23} {
                         assert(!s.valid)
                     } else {
