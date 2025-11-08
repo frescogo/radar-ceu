@@ -1,3 +1,4 @@
+require "atmos.env.sdl"
 val S = require "atmos.streams"
 val Serial = require("periphery").Serial
 
@@ -31,18 +32,18 @@ func Probe (t) {
     }
 }
 
-func Radar (dev) {
-    val ok, err = pcall(aux, dev)
+func Radar (dev, pos) {
+    val ok, err = pcall(aux, dev, pos)
     assert(!ok)
     emit [:global] (:radar.err, err)
 }
 
-func aux (dev) {
+func aux (dev, pos) {
     ;; dev : serial device  : [/dev/ttyACM0, /dev/ttyUSB1, COM3, ...]
 
     set pub = @{
         dev = dev,
-        pos = :u,   ;; :l | :r
+        pos = pos || :u,    ;; :l | :r
     }
 
     ;; ~40-50 reads/sec (20-25 ms/read)
