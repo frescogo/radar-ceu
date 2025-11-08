@@ -1,0 +1,8 @@
+require "radar"
+
+pin r = spawn Radar("/dev/ttyACM0", :l)
+
+spawn Shots()
+every v in :radar.shot {
+    xprint(v)
+}

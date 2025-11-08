@@ -1,5 +1,5 @@
 ;;;
-;; - Probe(t)
+;; - Probe(dt):      probe for radars in the serial ports
 ;; - Radar(dev,pos): raw readings from radar (radar.on, radar.err, radar.vel)
 ;; - Shots(radar):   filtered readings from radar (radar.shot)
 ;;;
@@ -19,19 +19,13 @@ val devs = @{
 
 pin radars = tasks()
 
-func Probe (t) {
-    par {
-        every _,err in :radar.err {
-            ;;xprint(err)
-        }
-    } with {
-        every t {
-            val ons = S.from(@{} ++ radars)::map \{it.pub.dev}::table()::to()
-            loop _,dev in devs {
-                if dev !> ons {
-                    catch true {
-                        spawn [radars] Radar(dev)
-                    }
+func Probe (dt) {
+    every dt {
+        val ons = S.from(@{} ++ radars)::map \{it.pub.dev}::table()::to()
+        loop _,dev in devs {
+            if dev !> ons {
+                catch true {
+                    spawn [radars] Radar(dev)
                 }
             }
         }
@@ -39,7 +33,8 @@ func Probe (t) {
 }
 
 ;;;
-;; Infinite loop reading the radar to emit one of the following:
+;; Infinite loop with raw readings from the radar.
+;; Emits one of the following:
 ;;  - Speed:
 ;;      - radar.vel `@{tag=tag, jog=jog, vel=vel}`
 ;;          - radar.vel.zer
@@ -127,12 +122,22 @@ func aux (dev, pos) {
                 if jog {
                     val vel = (num + 5) / 10 --> math.floor
                     val tag = if (vel == 0) => :radar.vel.zer => :radar.vel.pos
-                    emit [:global] @{tag=tag, jog=jog, vel=vel}
+                    emit [:global] @{tag=tag, jog=jog, vel=vel, dev=dev}
                 }
             }
         }
     }
 }
+
+;;;
+;; Infinite loop with filtered readings from the radar:
+;;  - radar.shot `@{tag=tag, jog=jog, vel=vel}`
+;;  - Conditions:
+;;      - consecutive (4 reps)
+;;      - non-zero
+;;      - same player
+;;      - within 25% gap
+;;;
 
 func Shots () {
     val v0 = await :radar.vel.pos
@@ -146,9 +151,6 @@ func Shots () {
     loop {
         do :nxt {
             watching :radaw.zer {
-                ;; `G.reps` consecutive reads:
-                ;;  - same player
-                ;;  - within 25% gap
                 loop _ in G.reps {
                     val v = await :radar.vel.pos
                     set cur.min = math.min(cur.min, v.vel)
