@@ -1,3 +1,11 @@
+- Tests:
+
+```
+atmos test-01.atm
+atmos test-02.atm
+atmos --test game.atm
+```
+
 - Atmos:
     - `minis/01-radar.atm`
         - uses `arduino/radar/`
