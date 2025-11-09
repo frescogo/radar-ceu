@@ -1,0 +1,65 @@
+val SDL = require "SDL"
+val TTF = require "SDL.ttf"
+
+val S = require "atmos.streams"
+val sdl = require "atmos.env.sdl"
+
+require "radar"
+
+val _,REN = sdl.window @{
+	title  = "FrescoGO: Multi Radar",
+	width  = 500,
+	height = 500,
+    flags  = @{ SDL.flags.OpenGL },
+}
+
+set FNT = TTF.open("tiny.ttf", 20) --> assert
+
+spawn Probe(@1)
+
+func Draw (txts) {
+    every :sdl.draw {
+        REN::setDrawColor(0x000000)
+        REN::clear()
+        REN::setDrawColor(0xFFFFFF)
+        loop i,t in txts[1] {
+            sdl.write(FNT, t, @{x=100, y=50+(i*30)})
+        }
+        loop i,t in txts[2] {
+            sdl.write(FNT, t, @{x=500-150, y=50+(i*30)})
+        }
+        REN::present()
+    }
+}
+
+par {
+    every _,on,dev in :radar.on {
+        xprint(on, dev)
+    }
+} with {
+    every _,err in :radar.err {
+        ;;xprint(err)
+    }
+} with {
+    loop {
+        val s = await \{ (it ?? :radar.vel) && (it.vel > 50) }
+        val t = @{ [s.dev]=@{s} }
+        watching @.500 {
+            every s in :radar.vel {
+                set t[s.dev] = t[s.dev] || @{}
+                set t[s.dev][+] = s
+            }
+        }
+        val txts = @{ @{}, @{} }
+        loop k,ss in t {
+            val n = string.sub(k, string.len(k)) -> tonumber
+            loop _,s in ss {
+                set txts[n+1][+] = s.vel
+            }
+        }
+        do {
+            spawn Draw(txts)
+            await(SDL.event.MouseButtonDown)
+        }
+    }
+}
