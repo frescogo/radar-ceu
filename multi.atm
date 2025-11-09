@@ -22,6 +22,8 @@ func Draw (txts) {
         REN::setDrawColor(0x000000)
         REN::clear()
         REN::setDrawColor(0xFFFFFF)
+        sdl.write(FNT, txts.avgs[1], @{x=100, y=30})
+        sdl.write(FNT, txts.avgs[2], @{x=500-150, y=30})
         loop i,t in txts[1] {
             sdl.write(FNT, t, @{x=100, y=50+(i*30)})
         }
@@ -50,12 +52,14 @@ par {
                 set t[s.dev][+] = s
             }
         }
-        val txts = @{ @{}, @{} }
+        val txts = @{ avgs=@{0,0}, @{}, @{} }
         loop k,ss in t {
             val n = string.sub(k, string.len(k)) -> tonumber
             loop _,s in ss {
+                set txts.avgs[n+1] = txts.avgs[n+1] + s.vel
                 set txts[n+1][+] = s.vel
             }
+            set txts.avgs[n+1] = txts.avgs[n+1]/#txts[n+1] --> math.floor
         }
         do {
             spawn Draw(txts)
