@@ -29,11 +29,13 @@ atmos --test game.atm
 ## Directory Structure
 
 ```
-radar-ceu/
-├── src/            Ceu/Mar source files
+ceu/
+├── minis/          Small Atmos examples using radar.atm
+├── layout/         Screen layout experiments (Atmos)
+├── src/            Ceu/Mar source files (legacy)
 ├── arduino/        Arduino sketches for radar hardware
 ├── tests/          C test programs for serial communication
-└── assets/         Fonts and other resources
+└── data/           Symlink to ../placar-radar/placar/data/
 ```
 
 ## Source Files (`src/`)
@@ -60,9 +62,3 @@ radar-ceu/
 |---|---|
 | `serial-read.c` | Reads serial data byte-by-byte from `/dev/ttyACM0` in non-blocking mode. Prints each character as received. |
 | `serial-bulk.c` | Reads serial data in bulk from `/dev/ttyACM0`. Prints received buffers. |
-
-## Assets (`assets/`)
-
-| File | Description |
-|---|---|
-| `tiny.ttf` | Font used by `serial-radar.ceu` for on-screen display of speed and direction. |
