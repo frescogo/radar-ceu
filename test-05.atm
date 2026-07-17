@@ -1,0 +1,4 @@
+require "atmos.env.clock"
+require "game"
+
+xprint(points)

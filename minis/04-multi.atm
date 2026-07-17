@@ -1,0 +1,31 @@
+val S = require "atmos.streams"
+require "radar"
+
+spawn Probe(@1)
+
+par {
+    every _,on,dev in :radar.on {
+        xprint(on, dev)
+    }
+} with {
+    every _,err in :radar.err {
+        ;;xprint(err)
+    }
+} with {
+    loop {
+        await \{ (it ?? :radar.vel) && (it.vel > 50) }
+        val t = @{}
+        watching @.500 {
+            every s in :radar.vel {
+                set t[s.dev] = t[s.dev] || @{}
+                set t[s.dev][+] = s
+            }
+        }
+        print "-=-=-=-"
+        loop k,ss in t {
+            set t[k] = S.from(ss)::map\{ @{it.jog,it.vel} }::table()::to()
+        }
+        xprint(t)
+        await @2
+    }
+}

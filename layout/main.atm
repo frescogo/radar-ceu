@@ -1,0 +1,31 @@
+require "atmos.env.pico"
+
+val pico   = require "pico"
+val layout = require "pico.layout"
+
+val W = 1024
+val H =  768
+
+pico.zet.size.window(W, H)
+
+val lay = @{
+    @{1,1,2},
+    @{1,1,2},
+    @{3,3,4},
+    @{5,6,7},
+}
+val rs = layout.build(lay, @{x=0,y=0,w=W,h=H})
+
+spawn {
+    every :draw {
+        layout.draw(rs, pico.color.white)
+        loop i in 7 {
+            val pt = pico.pos(@{x=50,y=50}, rs[i], @{x='left',y='top'})
+;;require'atmos.x'.print(pt)
+            pico.zet.color.draw(pico.color.red)
+            pico.output.draw.pixel(pt)
+        }
+    }
+}
+
+await (false)

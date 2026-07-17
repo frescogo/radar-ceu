@@ -1,0 +1,187 @@
+;;;
+;; - Probe(dt):      probe for radars in the serial ports
+;; - Radar(dev,pos): raw readings from radar (radar.on, radar.err, radar.vel)
+;; - Shots(radar):   filtered readings from radar (radar.shot)
+;;;
+
+require "atmos.env.sdl"
+val S = require "atmos.streams"
+val Serial = require("periphery").Serial
+
+val G = require "global"
+
+val X = string.char(0x88)   ;; radar format sentinel
+
+val devs = @{
+    "/dev/ttyACM0", "/dev/ttyACM1", "/dev/ttyACM2", "/dev/ttyACM3",
+    "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3",
+}
+
+pin radars = tasks()
+
+func Probe (dt) {
+    every dt {
+        val ons = S.from(@{} ++ radars)::map \{it.pub.dev}::table()::to()
+        loop _,dev in devs {
+            if dev !> ons {
+                catch true {
+                    spawn [radars] Radar(dev)
+                }
+            }
+        }
+    }
+}
+
+;;;
+;; Infinite loop with raw readings from the radar.
+;; Emits one of the following:
+;;  - Speed:
+;;      - radar.vel `@{tag=tag, jog=jog, vel=vel}`
+;;          - radar.vel.zer
+;;          - radar.vel.pos
+;;  - Control:
+;;      - radar.on(true/false): open/close serial
+;;      - radar.err: caught error and aborted as a whole
+;;;
+
+func Radar (dev, pos) {
+    val ok, err = pcall(aux, dev, pos)
+    assert(!ok)
+    emit [:global] (:radar.err, err)
+}
+
+func aux (dev, pos) {
+    ;; dev : serial device  : [/dev/ttyACM0, /dev/ttyUSB1, COM3, ...]
+
+    set pub = @{
+        dev = dev,
+        pos = pos || :u,    ;; :l | :r
+    }
+
+    ;; ~40-50 reads/sec (20-25 ms/read)
+
+    val f = Serial(dev, 9600)
+    emit [:global] (:radar.on, true, dev)
+    defer {
+        f::close()
+        emit [:global] (:radar.on, false, dev)
+    }
+
+    loop {
+        ;; wait (c == 0x88)
+        do :ok {
+            loop {
+                await :clock
+                loop {
+                    val c = f::read(1,0)
+                    until (c == '')
+                    if c == X {
+                        escape :ok
+                    }
+                }
+            }
+        }
+
+        ;; wait (#s == 23)
+        var s = ""
+        do :ok {
+            loop {
+                await :clock
+                loop {
+                    val c = f::read(1,0)
+                    until (c == '')
+                    set s = s ++ c
+                    if #s == 23 {
+                        escape :ok
+                    }
+                }
+            }
+        }
+
+        val num = tonumber(string.sub(s,9,12))
+        val byt = string.sub(s,8) --> string.byte
+        val dir = ifs {
+            (byt == 66) => :inb
+            (byt == 64) => :out
+            else        => nil      ;; read error
+        }
+
+        ifs {
+            (num == nil)    => {}   ;; read error
+            (dir == nil)    => {}   ;; read error
+            else => {
+                val jog = ifs {
+                    (num == 0)                   => :u  ;; undefined
+                    (pub.pos == :u)              => :u
+                    (pub.pos==:l) && (dir==:out) => :l
+                        (pub.pos==:l) && (dir==:inb) => :r
+                    (pub.pos==:r) && (dir==:out) => :r
+                    (pub.pos==:r) && (dir==:inb) => :l
+                    else                         => error "impossible case"
+                }
+                if jog {
+                    val vel = (num + 5) / 10 --> math.floor
+                    val tag = if (vel == 0) => :radar.vel.zer => :radar.vel.pos
+                    emit [:global] @{tag=tag, jog=jog, vel=vel, dev=dev}
+                }
+            }
+        }
+    }
+}
+
+;;;
+;; Infinite loop with filtered readings from the radar:
+;;  - radar.shot `@{tag=tag, jog=jog, vel=vel}`
+;;  - Conditions:
+;;      - consecutive (4 reps)
+;;      - non-zero
+;;      - same player
+;;      - within 25% gap
+;;;
+
+func Shots () {
+    val v0 = await :radar.vel.pos
+
+    var cur = @{
+        jog = v0.jog,
+        min = v0.vel,
+        max = v0.vel,
+    }
+
+    loop {
+        do :nxt {
+            watching :radaw.zer {
+                loop _ in G.reps {
+                    val v = await :radar.vel.pos
+                    set cur.min = math.min(cur.min, v.vel)
+                    set cur.max = math.max(cur.max, v.vel)
+                    val ok = ifs {
+                        (v.jog != cur.jog)         => false
+                        ((cur.min*1.25) < cur.max) => false
+                        else                       => true
+                    }
+                    if !ok {
+                        set cur = @{
+                            jog = v.jog,
+                            min = v.vel,
+                            max = v.vel,
+                        }
+                        escape :nxt
+                    }
+                }
+                emit [:global] :radar.shot @{jog=cur.jog,vel=cur.max}
+                await @.250
+            }
+            do {
+                val v = await :radar.vel.pos
+                set cur = @{
+                    jog = v.jog,
+                    min = v.vel,
+                    max = v.vel,
+                }
+            }
+        }
+    }
+}
+
+

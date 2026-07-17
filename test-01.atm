@@ -1,0 +1,95 @@
+require "game"
+
+;; Tests the game phases:
+;;  - Mocks:
+;;      - sdl: step
+;;      - out: start, shot, fall, serve
+;;  - GO: game, phase, seq, time, fall
+
+pin G = spawn Game()
+
+watching G {
+    par {
+        print("GAME 1: ??")
+        do {
+            await(:ins.game, true)
+            await(:ins.phase, true, :speed)
+
+            await(:ins.seq, true, 1)
+            val s = await(:radar.shot)
+            assert((s.now==0) && (s.jog==:l) && (s.vel==40))
+            val s = await(:radar.shot)
+            assert((s.now==500) && (s.jog==:r) && (s.vel==60))
+            val _,t = await(:ins.time)
+            assert(t == 1000)
+            par_and {
+                await :out.fall
+            } with {
+                await(:ins.seq, false, 1)
+            }
+
+            await(:ins.seq, true, 2)
+            val s = await(:radar.shot)
+            assert((s.now==13000) && (s.jog==:l) && (s.vel==34))
+            await(:ins.seq, false, 2)
+
+            await(:ins.phase, false, :speed)
+            await(:ins.phase, true, :power)
+
+            await(:ins.seq, true, 1)
+            loop i in 4 {
+                val so = await(:radar.shot)
+                assert((so.now==((i-1)*500)) && (so.jog==:r) && (so.vel==50))
+                val si = await(:radar.shot)
+                assert((si.now==(((i-1)*500) + 250)) && (si.jog==:l) && (si.vel==50))
+            }
+            await(:ins.seq, false, 1)
+
+            await(:ins.phase, false, :power)
+            await(:ins.game, false)
+        }
+        print("GAME 1: ok")
+    } with {
+        emit :out.start
+
+        emit(:radar.shot @{jog=:r,vel=31})
+        emit(:clock, 100000)
+        emit(:radar.shot @{jog=:l,vel=34})
+        emit(:clock, 100)
+
+        ;; SPEED
+
+        ;; SEQ 0
+        emit :out.serve
+        emit(:clock, 500)
+        emit(:radar.shot @{jog=:l,vel=40})
+        emit(:clock, 500)
+        emit(:radar.shot @{jog=:r,vel=60})
+        emit(:clock, 500)
+        emit :out.fall
+
+        ;; innocuous
+        emit(:radar.shot @{jog=:r,vel=31})
+        emit(:clock, 100000)
+        emit(:radar.shot @{jog=:l,vel=34})
+        emit(:clock, 100)
+
+        ;; SEQ 1
+        emit :out.serve
+        emit(:radar.shot @{jog=:l,vel=34})
+        emit(:clock, (6*60*1000)/2)
+        emit :out.fall
+
+        ;; POWER
+
+        ;; SEQ 0
+        emit :out.serve
+        loop _ in 4 {
+            emit(:radar.shot @{jog=:r,vel=50})
+            emit(:clock, 250)
+            emit(:radar.shot @{jog=:l,vel=50})
+            emit(:clock, 250)
+        }
+        emit(:clock, (6*60*1000)/2)
+    }
+}

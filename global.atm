@@ -1,0 +1,5 @@
+@{
+    reps = 4,           ;; 4 consecutive radar readings
+    time = 3*60*1000,   ;; 3-min total phase time
+    fall = 12*1000,     ;; 12-sec fall time penalty
+}

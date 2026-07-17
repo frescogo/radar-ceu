@@ -1,0 +1,22 @@
+require "radar"
+
+spawn Probe(@1)
+spawn Shots()
+
+par {
+    every _,on,dev in :radar.on {
+        xprint(on, dev)
+    }
+} with {
+    every _,err in :radar.err {
+        ;;xprint(err)
+    }
+} with {
+    every v in :radar.vel {
+        ;;xprint(v)
+    }
+} with {
+    every v in :radar.shot {
+        xprint(v)
+    }
+}
